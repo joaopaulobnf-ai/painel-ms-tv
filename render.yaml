@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: painel-ms-tv
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: PDC_API_URL
+        value: https://pdcapi.io
+      - key: PDC_ORIGIN
+        value: https://dashboard.bz
+      - key: PDC_TOKEN
+        sync: false
