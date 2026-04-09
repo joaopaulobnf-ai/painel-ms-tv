@@ -1,5 +1,5 @@
 import express from "express";
-import { store } from "../store.js";
+import { store, saveStore } from "../store.js";
 
 const router = express.Router();
 
@@ -7,7 +7,7 @@ function parseConnections(html = "") {
   const match = html.match(/(\d+)\/(\d+)/);
   return {
     current: match ? Number(match[1]) : 0,
-    max: match ? Number(match[2]) : 0,
+    max: match ? Number(match[2]) : 0
   };
 }
 
@@ -53,7 +53,7 @@ function toClient(item) {
     conexoesHtml: item.conexoes || "",
     observacoes: item.reseller_notes || "",
     memberId: item.member_id || "",
-    forceServerId: item.force_server_id || "0",
+    forceServerId: item.force_server_id || "0"
   };
 }
 
@@ -66,13 +66,13 @@ async function fetchRemoteClients() {
       "Origin": process.env.PDC_ORIGIN,
       "Referer": `${process.env.PDC_ORIGIN}/`,
       "x-access-token": process.env.PDC_TOKEN,
-      "x_filtro": "todas",
+      "x_filtro": "todas"
     },
     body: new URLSearchParams({
       draw: "1",
       start: "0",
-      length: "500",
-    }),
+      length: "500"
+    })
   });
 
   if (!response.ok) {
@@ -95,14 +95,14 @@ router.get("/sync", async (req, res) => {
       syncedAt: new Date().toISOString(),
       total: clients.length,
       filtered: clients.length,
-      clients,
+      clients
     });
   } catch (error) {
     console.error("Erro /api/clients/sync:", error);
     res.status(500).json({
       result: false,
       message: "Erro ao sincronizar clientes",
-      error: error.message,
+      error: error.message
     });
   }
 });
@@ -117,14 +117,14 @@ router.get("/", async (req, res) => {
     res.json({
       result: true,
       total: store.clientes.length,
-      clients: store.clientes,
+      clients: store.clientes
     });
   } catch (error) {
     console.error("Erro /api/clients:", error);
     res.status(500).json({
       result: false,
       message: "Erro ao listar clientes",
-      error: error.message,
+      error: error.message
     });
   }
 });
@@ -136,18 +136,43 @@ router.post("/pagar/:id", (req, res) => {
     store.pagos.add(id);
     store.historico.push({
       id,
-      data: new Date().toISOString(),
+      acao: "marcou_pago",
+      data: new Date().toISOString()
     });
+    saveStore();
   }
 
   res.json({
     ok: true,
-    pagos: [...store.pagos],
+    pagos: [...store.pagos]
+  });
+});
+
+router.post("/desmarcar-pago/:id", (req, res) => {
+  const { id } = req.params;
+
+  if (store.pagos.has(id)) {
+    store.pagos.delete(id);
+    store.historico.push({
+      id,
+      acao: "desmarcou_pago",
+      data: new Date().toISOString()
+    });
+    saveStore();
+  }
+
+  res.json({
+    ok: true,
+    pagos: [...store.pagos]
   });
 });
 
 router.get("/pagos", (req, res) => {
   res.json([...store.pagos]);
+});
+
+router.get("/historico", (req, res) => {
+  res.json(store.historico);
 });
 
 router.get("/contatos", (req, res) => {
@@ -161,17 +186,40 @@ router.post("/contatos/:id", (req, res) => {
   if (!telefone) {
     return res.status(400).json({
       ok: false,
-      message: "Telefone é obrigatório",
+      message: "Telefone é obrigatório"
     });
   }
 
   const numeroLimpo = String(telefone).replace(/\D/g, "");
+
+  if (numeroLimpo.length < 10) {
+    return res.status(400).json({
+      ok: false,
+      message: "Telefone inválido"
+    });
+  }
+
   store.contatos[id] = numeroLimpo;
+  saveStore();
 
   res.json({
     ok: true,
     id,
-    telefone: numeroLimpo,
+    telefone: numeroLimpo
+  });
+});
+
+router.delete("/contatos/:id", (req, res) => {
+  const { id } = req.params;
+
+  if (store.contatos[id]) {
+    delete store.contatos[id];
+    saveStore();
+  }
+
+  res.json({
+    ok: true,
+    contatos: store.contatos
   });
 });
 
