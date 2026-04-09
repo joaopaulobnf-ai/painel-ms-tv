@@ -4,30 +4,108 @@ import { store, saveStore } from "../store.js";
 const router = express.Router();
 
 function parseConnections(html = "") {
-  const match = html.match(/(\d+)\/(\d+)/);
+  const match = String(html).match(/(\d+)\s*\/\s*(\d+)/);
   return {
     current: match ? Number(match[1]) : 0,
     max: match ? Number(match[2]) : 0
   };
 }
 
-function toClient(item) {
-  const expUnix = Number(item.exp_date || 0);
-  const vencimentoDate = expUnix ? new Date(expUnix * 1000) : null;
+function formatDateBR(dateObj) {
+  if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) return "";
+  const dd = String(dateObj.getUTCDate()).padStart(2, "0");
+  const mm = String(dateObj.getUTCMonth() + 1).padStart(2, "0");
+  const yyyy = dateObj.getUTCFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
 
-  const dd = vencimentoDate ? String(vencimentoDate.getDate()).padStart(2, "0") : "";
-  const mm = vencimentoDate ? String(vencimentoDate.getMonth() + 1).padStart(2, "0") : "";
-  const yyyy = vencimentoDate ? vencimentoDate.getFullYear() : "";
+function toUtcMidday(dateObj) {
+  if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) return null;
+  return new Date(Date.UTC(
+    dateObj.getUTCFullYear(),
+    dateObj.getUTCMonth(),
+    dateObj.getUTCDate(),
+    12, 0, 0
+  ));
+}
+
+function parsePossibleDate(value) {
+  if (!value) return null;
+
+  if (typeof value === "number" || /^\d+$/.test(String(value))) {
+    const num = Number(value);
+    if (!Number.isNaN(num) && num > 0) {
+      // timestamp em segundos
+      if (String(num).length <= 10) {
+        return new Date(num * 1000);
+      }
+      // timestamp em ms
+      return new Date(num);
+    }
+  }
+
+  const str = String(value).trim();
+
+  // já no formato dd/mm/aaaa
+  let match = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (match) {
+    const [, dd, mm, yyyy] = match;
+    return new Date(Date.UTC(Number(yyyy), Number(mm) - 1, Number(dd), 12, 0, 0));
+  }
+
+  // formato yyyy-mm-dd
+  match = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    const [, yyyy, mm, dd] = match;
+    return new Date(Date.UTC(Number(yyyy), Number(mm) - 1, Number(dd), 12, 0, 0));
+  }
+
+  // fallback
+  const parsed = new Date(str);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function normalizeClientDate(item) {
+  const candidates = [
+    item.exp_date,
+    item.expiration,
+    item.vencimentoIso,
+    item.vencimento,
+    item.expiration_date,
+    item.expire_date
+  ];
+
+  for (const candidate of candidates) {
+    const parsed = parsePossibleDate(candidate);
+    if (parsed) return toUtcMidday(parsed);
+  }
+
+  return null;
+}
+
+function toClient(item) {
+  const vencimentoDate = normalizeClientDate(item);
 
   const hoje = new Date();
-  const hojeZero = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+  const hojeUtc = new Date(Date.UTC(
+    hoje.getUTCFullYear(),
+    hoje.getUTCMonth(),
+    hoje.getUTCDate(),
+    12, 0, 0
+  ));
+
   const vencZero = vencimentoDate
-    ? new Date(vencimentoDate.getFullYear(), vencimentoDate.getMonth(), vencimentoDate.getDate())
+    ? new Date(Date.UTC(
+        vencimentoDate.getUTCFullYear(),
+        vencimentoDate.getUTCMonth(),
+        vencimentoDate.getUTCDate(),
+        12, 0, 0
+      ))
     : null;
 
-  const isTrial = item.is_trial === "1";
-  const active = item.status === "1";
-  const vencido = vencZero ? vencZero < hojeZero : false;
+  const isTrial = String(item.is_trial || "") === "1";
+  const active = String(item.status || "") === "1";
+  const vencido = vencZero ? vencZero < hojeUtc : false;
 
   let status = "inativo";
   if (isTrial) status = "teste";
@@ -37,19 +115,21 @@ function toClient(item) {
   const conexoes = parseConnections(item.conexoes || "");
 
   return {
-    id: String(item.id),
-    login: item.username || "",
+    id: String(item.id || ""),
+    login: item.username || item.login || "",
     statusOriginal: item.status,
     status,
     ativo: active,
     vencido,
     teste: isTrial,
-    vencimento: vencimentoDate ? `${dd}/${mm}/${yyyy}` : "",
+    vencimento: vencimentoDate ? formatDateBR(vencimentoDate) : "",
     vencimentoIso: vencimentoDate ? vencimentoDate.toISOString() : "",
-    diasParaVencer: vencZero ? Math.floor((vencZero - hojeZero) / (1000 * 60 * 60 * 24)) : null,
-    autoRenovar: item.auto_renew === "1",
+    diasParaVencer: vencZero
+      ? Math.floor((vencZero - hojeUtc) / (1000 * 60 * 60 * 24))
+      : null,
+    autoRenovar: String(item.auto_renew || "") === "1",
     maxConexoes: Number(item.max_con || conexoes.max || 0),
-    conexoesAtuais: conexoes.current || 0,
+    conexoesAtuais: Number(conexoes.current || 0),
     conexoesHtml: item.conexoes || "",
     observacoes: item.reseller_notes || "",
     memberId: item.member_id || "",
