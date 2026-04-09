@@ -6,11 +6,11 @@
   <title>MS TV Admin</title>
   <style>
     :root{
-      --bg:#f3f4f6;
+      --bg:#eef2f7;
       --card:#ffffff;
-      --text:#111827;
-      --muted:#6b7280;
-      --line:#e5e7eb;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:#e2e8f0;
       --sidebar1:#071226;
       --sidebar2:#0f172a;
       --green:#16a34a;
@@ -21,10 +21,11 @@
       --red-soft:#fee2e2;
       --purple:#7c3aed;
       --purple-soft:#ede9fe;
-      --surface:#f8fafc;
-      --shadow:0 10px 30px rgba(15,23,42,.08);
-      --shadow-soft:0 4px 14px rgba(15,23,42,.05);
-      --radius:20px;
+      --gray:#475569;
+      --gray-soft:#f1f5f9;
+      --shadow:0 12px 30px rgba(15,23,42,.08);
+      --shadow-soft:0 6px 18px rgba(15,23,42,.06);
+      --radius:22px;
     }
 
     *{box-sizing:border-box}
@@ -32,7 +33,7 @@
     body{
       margin:0;
       font-family:Arial,Helvetica,sans-serif;
-      background:linear-gradient(180deg,#f8fafc 0%, #f1f5f9 100%);
+      background:linear-gradient(180deg,#f8fafc 0%, #eef2f7 100%);
       color:var(--text);
     }
 
@@ -161,7 +162,8 @@
 
     .topbar h2{
       margin:0;
-      font-size:28px;
+      font-size:30px;
+      letter-spacing:-.4px;
     }
 
     .topbar p{
@@ -171,16 +173,16 @@
 
     .btn{
       border:none;
-      border-radius:12px;
-      padding:11px 15px;
-      font-weight:700;
+      border-radius:14px;
+      padding:11px 16px;
+      font-weight:800;
       cursor:pointer;
       transition:.2s;
       box-shadow:var(--shadow-soft);
     }
 
     .btn:hover{
-      opacity:.95;
+      opacity:.96;
       transform:translateY(-1px);
     }
 
@@ -195,7 +197,7 @@
     }
 
     .cards{
-      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
       margin-bottom:22px;
     }
 
@@ -203,19 +205,21 @@
       background:var(--card);
       border:1px solid rgba(226,232,240,.9);
       border-radius:var(--radius);
-      padding:18px;
+      padding:20px;
       box-shadow:var(--shadow);
     }
 
     .card-title{
       color:var(--muted);
       font-size:14px;
+      font-weight:700;
     }
 
     .card-value{
-      font-size:34px;
-      font-weight:800;
+      font-size:36px;
+      font-weight:900;
       margin-top:10px;
+      letter-spacing:-1px;
     }
 
     .two-cols{
@@ -247,8 +251,8 @@
     input, select, textarea{
       width:100%;
       border:1px solid #dbe2ea;
-      border-radius:12px;
-      padding:11px 12px;
+      border-radius:14px;
+      padding:12px 13px;
       font-size:14px;
       outline:none;
       background:#fff;
@@ -257,7 +261,7 @@
 
     input:focus, select:focus, textarea:focus{
       border-color:#3b82f6;
-      box-shadow:0 0 0 3px rgba(59,130,246,.12);
+      box-shadow:0 0 0 4px rgba(59,130,246,.10);
     }
 
     textarea{
@@ -279,11 +283,11 @@
     }
 
     .table-shell{
-      border:1px solid #e2e8f0;
-      border-radius:20px;
+      border:1px solid #dbe4ee;
+      border-radius:24px;
       overflow:hidden;
       background:#fff;
-      box-shadow:var(--shadow-soft);
+      box-shadow:var(--shadow);
     }
 
     .table-wrap{
@@ -294,37 +298,46 @@
       width:100%;
       border-collapse:separate;
       border-spacing:0;
-      min-width:1000px;
+      min-width:1100px;
     }
 
     thead th{
-      background:linear-gradient(180deg,#f8fafc 0%, #f1f5f9 100%);
-      color:#475569;
+      background:linear-gradient(135deg,#0f172a,#1e293b);
+      color:#f8fafc;
       font-size:12px;
       text-transform:uppercase;
-      letter-spacing:.6px;
+      letter-spacing:.7px;
       font-weight:800;
-      padding:15px 14px;
-      border-bottom:1px solid #e2e8f0;
+      padding:16px 16px;
+      border-bottom:none;
       position:sticky;
       top:0;
-      z-index:1;
+      z-index:2;
+    }
+
+    thead th:first-child{
+      border-top-left-radius:18px;
+    }
+
+    thead th:last-child{
+      border-top-right-radius:18px;
     }
 
     tbody td{
-      padding:16px 14px;
-      border-bottom:1px solid #f1f5f9;
+      padding:18px 16px;
+      border-bottom:1px solid #eef2f7;
       font-size:14px;
       vertical-align:top;
       background:#fff;
-    }
-
-    tbody tr{
       transition:.18s ease;
     }
 
+    tbody tr:nth-child(even) td{
+      background:#fcfdff;
+    }
+
     tbody tr:hover td{
-      background:#fbfdff;
+      background:#f8fbff;
     }
 
     tbody tr:last-child td{
@@ -332,8 +345,9 @@
     }
 
     .login-cell{
-      font-weight:700;
+      font-weight:800;
       color:#0f172a;
+      font-size:15px;
     }
 
     .date-cell{
@@ -342,17 +356,18 @@
     }
 
     .conn-cell{
-      font-weight:700;
+      font-weight:800;
       color:#334155;
     }
 
     .badge{
       display:inline-block;
-      padding:7px 11px;
+      padding:7px 12px;
       border-radius:999px;
       font-size:12px;
       font-weight:800;
       letter-spacing:.2px;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.4);
     }
 
     .badge-ativo{background:var(--green-soft);color:#15803d}
@@ -364,7 +379,7 @@
       display:flex;
       flex-direction:column;
       gap:12px;
-      min-width:320px;
+      min-width:340px;
     }
 
     .contact-card{
@@ -373,16 +388,17 @@
       border:1px solid #e2e8f0;
       border-radius:18px;
       padding:14px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
     }
 
     .contact-label{
       display:block;
       font-size:11px;
-      font-weight:800;
+      font-weight:900;
       color:#64748b;
       margin-bottom:10px;
       text-transform:uppercase;
-      letter-spacing:.8px;
+      letter-spacing:.9px;
     }
 
     .contact-view{
@@ -396,11 +412,12 @@
     .saved-phone{
       font-size:15px;
       color:#0f172a;
-      font-weight:800;
+      font-weight:900;
       background:#fff;
       border:1px solid #e2e8f0;
-      padding:10px 12px;
-      border-radius:12px;
+      padding:11px 13px;
+      border-radius:14px;
+      box-shadow:var(--shadow-soft);
     }
 
     .contact-row{
@@ -412,10 +429,10 @@
 
     .input-whatsapp{
       flex:1;
-      min-width:180px;
+      min-width:185px;
       border:1px solid #dbe2ea;
-      border-radius:12px;
-      padding:11px 12px;
+      border-radius:14px;
+      padding:12px 13px;
       font-size:14px;
       background:#fff;
       transition:.2s;
@@ -425,7 +442,7 @@
     .input-whatsapp:focus{
       border-color:#22c55e;
       outline:none;
-      box-shadow:0 0 0 3px rgba(34,197,94,.15);
+      box-shadow:0 0 0 4px rgba(34,197,94,.12);
     }
 
     .action-buttons{
@@ -436,8 +453,8 @@
 
     .mini-btn{
       border:none;
-      padding:10px 14px;
-      border-radius:12px;
+      padding:11px 14px;
+      border-radius:14px;
       cursor:pointer;
       font-size:13px;
       font-weight:800;
@@ -453,7 +470,7 @@
 
     .mini-btn:hover{
       transform:translateY(-1px);
-      opacity:.95;
+      opacity:.96;
     }
 
     .mini-btn.outline{
@@ -546,8 +563,9 @@
 
     .empty{
       color:var(--muted);
-      padding:18px 0;
+      padding:22px 0;
       text-align:center;
+      font-weight:700;
     }
 
     @media (max-width: 980px){
@@ -853,7 +871,7 @@ Caso deseje reativar, posso te enviar o PIX agora mesmo.
 
 Sentimos sua falta na plataforma 💙
 Equipe MS TV`;
-      }
+    }
 
     function cobrarLista(lista, tipo) {
       const clientesComNumero = lista.filter(cliente => contatos[cliente.id]);
