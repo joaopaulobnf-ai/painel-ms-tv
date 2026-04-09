@@ -22,7 +22,6 @@
       --purple:#7c3aed;
       --purple-soft:#ede9fe;
       --gray:#475569;
-      --gray-soft:#f1f5f9;
       --shadow:0 12px 30px rgba(15,23,42,.08);
       --shadow-soft:0 6px 18px rgba(15,23,42,.06);
       --radius:22px;
@@ -32,7 +31,7 @@
 
     body{
       margin:0;
-      font-family:Arial,Helvetica,sans-serif;
+      font-family:Arial, Helvetica, sans-serif;
       background:linear-gradient(180deg,#f8fafc 0%, #eef2f7 100%);
       color:var(--text);
     }
@@ -864,16 +863,16 @@
 
 Passando para avisar que sua assinatura MS TV (login: ${login}) vence em breve, no dia ${data}.
 
-Agradecemos muito por fazer parte da nossa plataforma 🙌
+Agradecemos muito por fazer parte da nossa plataforma.
 Você é muito importante para toda a equipe MS TV.
 
 Se desejar, já posso te enviar o PIX para renovação.
 
-Equipe MS TV 💙`;
+Equipe MS TV`;
       }
 
       if (tipo === "2") {
-        return `Olá! Tudo bem? 😊
+        return `Olá, tudo bem? 😊
 
 Sua assinatura MS TV (login: ${login}) vence em 2 dias, na data ${data}.
 
@@ -881,38 +880,41 @@ Queremos garantir que você continue aproveitando a melhor experiência com a MS
 
 Se quiser, já posso te enviar o PIX para renovação.
 
-Equipe MS TV 💙`;
+Equipe MS TV`;
       }
 
       if (tipo === "1") {
-        return `Olá! Tudo bem? 😊
+        return `Olá, tudo bem? 😊
 
 Sua assinatura MS TV (login: ${login}) vence amanhã (${data}).
 
 Para evitar qualquer interrupção no seu acesso, já podemos adiantar sua renovação.
 
-Agradecemos por confiar no nosso serviço 🙌
-Equipe MS TV 💙`;
+Agradecemos por confiar no nosso serviço.
+
+Equipe MS TV`;
       }
 
       if (tipo === "0") {
-        return `Olá! 😊
+        return `Olá. 😊
 
 Sua assinatura MS TV (login: ${login}) vence hoje (${data}).
 
 Para continuar aproveitando sua programação sem interrupções, já posso te enviar o PIX para renovação.
 
-Você é muito importante para nós 💙
+Você é muito importante para nós.
+
 Equipe MS TV`;
       }
 
-      return `Olá! 😊
+      return `Olá. 😊
 
 Identificamos que sua assinatura MS TV (login: ${login}) venceu no dia ${data}.
 
 Caso deseje reativar, posso te enviar o PIX agora mesmo.
 
-Sentimos sua falta na plataforma 💙
+Sentimos sua falta na plataforma.
+
 Equipe MS TV`;
     }
 
@@ -948,15 +950,15 @@ Equipe MS TV`;
       }
 
       clientesComNumero.forEach((cliente, index) => {
-        const text = `🔥 PROMOÇÃO DO DIA MS TV 🔥
+        const text = `PROMOÇÃO DO DIA MS TV
 
-Olá, ${cliente.login}!
+Olá, ${cliente.login}.
 
 ${msg}
 
-Aproveite agora e garanta o melhor do entretenimento com a MS TV 🚀
+Aproveite agora e garanta o melhor do entretenimento com a MS TV.
 
-Equipe MS TV 💙`;
+Equipe MS TV`;
 
         const link = buildClientWhatsappLink(cliente, text);
 
@@ -976,7 +978,7 @@ Equipe MS TV 💙`;
       }
 
       const escolhido = elegiveis[Math.floor(Math.random() * elegiveis.length)];
-      box.innerHTML = `🎉 GANHADOR DO MÊS 🎉<br><br>Cliente: <strong>${escolhido.login}</strong><br>Parabéns! Você ganhou 1 mês grátis na MS TV 💙`;
+      box.innerHTML = `GANHADOR DO MÊS<br><br>Cliente: <strong>${escolhido.login}</strong><br>Parabéns. Você ganhou 1 mês grátis na MS TV.`;
     }
 
     function renderDashboard() {
@@ -1139,7 +1141,19 @@ Equipe MS TV 💙`;
           </div>
         </div>
       `;
-          function renderCobrancas() {
+
+      document.getElementById("searchInput").addEventListener("input", (e) => {
+        filtroBusca = e.target.value;
+        renderClientes();
+      });
+
+      document.getElementById("statusSelect").addEventListener("change", (e) => {
+        filtroStatus = e.target.value;
+        renderClientes();
+      });
+    }
+
+    function renderCobrancas() {
       const lista3 = clientesPorDias(3);
       const lista2 = clientesPorDias(2);
       const lista1 = clientesPorDias(1);
