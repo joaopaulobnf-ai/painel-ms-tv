@@ -13,14 +13,17 @@ function parseConnections(html = "") {
 
 function formatDateBR(dateObj) {
   if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) return "";
+
   const dd = String(dateObj.getUTCDate()).padStart(2, "0");
   const mm = String(dateObj.getUTCMonth() + 1).padStart(2, "0");
   const yyyy = dateObj.getUTCFullYear();
+
   return `${dd}/${mm}/${yyyy}`;
 }
 
 function normalizeToUtcMidday(dateObj) {
   if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) return null;
+
   return new Date(Date.UTC(
     dateObj.getUTCFullYear(),
     dateObj.getUTCMonth(),
@@ -34,10 +37,12 @@ function parsePossibleDate(value) {
 
   if (typeof value === "number" || /^\d+$/.test(String(value))) {
     const num = Number(value);
+
     if (!Number.isNaN(num) && num > 0) {
       if (String(num).length <= 10) {
         return new Date(num * 1000);
       }
+
       return new Date(num);
     }
   }
