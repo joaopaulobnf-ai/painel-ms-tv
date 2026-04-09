@@ -40,7 +40,7 @@
       display:flex;
       min-height:100vh;
     }
-let contatos = {};
+
     .sidebar{
       width:280px;
       background:linear-gradient(180deg,var(--sidebar1) 0%,var(--sidebar2) 100%);
@@ -200,10 +200,15 @@ let contatos = {};
       margin-bottom:14px;
     }
 
-    .toolbar-right{
+    .filters{
       display:flex;
       gap:8px;
       flex-wrap:wrap;
+    }
+
+    .filters > *{
+      width:auto;
+      min-width:160px;
     }
 
     input, select, textarea{
@@ -219,17 +224,6 @@ let contatos = {};
     textarea{
       min-height:130px;
       resize:vertical;
-    }
-
-    .filters{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-
-    .filters > *{
-      width:auto;
-      min-width:160px;
     }
 
     .actions-bar{
@@ -279,7 +273,6 @@ let contatos = {};
     .badge-teste{background:var(--blue-soft);color:#1d4ed8}
     .badge-vencido{background:var(--red-soft);color:#b91c1c}
     .badge-pago{background:var(--purple-soft);color:#6d28d9}
-    .badge-hoje{background:var(--amber-soft);color:#b45309}
 
     .table-actions{
       display:flex;
@@ -430,23 +423,20 @@ let contatos = {};
     let screen = "dashboard";
     let clientes = [];
     let pagos = [];
+    let contatos = {};
     let filtroBusca = "";
     let filtroStatus = "";
 
     function changeScreen(nextScreen, button) {
       screen = nextScreen;
-
       document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
       if (button) button.classList.add("active");
-
       render();
     }
 
     async function fetchJson(url, options = {}) {
       const res = await fetch(url, options);
-      if (!res.ok) {
-        throw new Error("Falha ao carregar " + url);
-      }
+      if (!res.ok) throw new Error("Falha ao carregar " + url);
       return res.json();
     }
 
@@ -459,11 +449,9 @@ let contatos = {};
     function diffDays(dateStr) {
       const d = parseBrDate(dateStr);
       if (!d) return null;
-
       const now = new Date();
       const startA = new Date(d.getFullYear(), d.getMonth(), d.getDate());
       const startB = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
       return Math.floor((startA - startB) / (1000 * 60 * 60 * 24));
     }
 
@@ -490,7 +478,6 @@ let contatos = {};
       return [...list].sort((a, b) => {
         const aPago = isPago(a.id);
         const bPago = isPago(b.id);
-
         if (aPago !== bPago) return aPago ? 1 : -1;
 
         const da = parseBrDate(a.vencimento);
@@ -537,8 +524,72 @@ let contatos = {};
       return clientes.filter(c => isPago(c.id) && c.status !== "vencido");
     }
 
-    function buildWhatsappLink(text) {
-      return `https://wa.me/${WHATSAPP_MS_TV}?text=${encodeURIComponent(text)}`;
+    async function carregar() {
+      try {
+        const data = await fetchJson(API + "/api/clients/sync");
+        clientes = data.clients || [];
+
+        const pagosRes = await fetchJson(API + "/api/clients/pagos");
+        pagos = pagosRes || [];
+
+        const contatosRes = await fetchJson(API + "/api/clients/contatos");
+        contatos = contatosRes || {};
+
+        render();
+      } catch (error) {
+        console.error("Erro ao carregar clientes:", error);
+        clientes = [];
+        render();
+      }
+    }
+
+    async function marcarPago(id) {
+      try {
+        await fetchJson(API + "/api/clients/pagar/" + id, { method: "POST" });
+        if (!pagos.includes(id)) pagos.push(id);
+        render();
+      } catch (error) {
+        alert("Erro ao marcar como pago.");
+      }
+    }
+
+    async function salvarContato(id) {
+      const input = document.getElementById("fone_" + id);
+      const telefone = input.value.trim();
+
+      if (!telefone) {
+        alert("Digite o WhatsApp do cliente.");
+        return;
+      }
+
+      try {
+        await fetchJson(API + "/api/clients/contatos/" + id, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ telefone })
+        });
+
+        contatos[id] = telefone.replace(/\D/g, "");
+        alert("Contato salvo com sucesso.");
+        render();
+      } catch (error) {
+        alert("Erro ao salvar contato.");
+        console.error(error);
+      }
+    }
+
+    function buildClientWhatsappLink(cliente, text) {
+      const numero = contatos[cliente.id];
+
+      if (!numero) {
+        alert("Cadastre o WhatsApp do cliente primeiro.");
+        return "#";
+      }
+
+      const numeroCompleto = numero.startsWith("55") ? numero : "55" + numero;
+      return `https://wa.me/${numeroCompleto}?text=${encodeURIComponent(text)}`;
     }
 
     function textoCobranca(cliente, tipo) {
@@ -602,44 +653,16 @@ Sentimos sua falta na plataforma 💙
 Equipe MS TV`;
     }
 
-    async function carregar() {
-      try {
-        const data = await fetchJson(API + "/api/clients/sync");
-        clientes = data.clients || [];
-
-        const pagosRes = await fetchJson(API + "/api/clients/pagos");
-        pagos = pagosRes || [];
-
-        render();
-      } catch (error) {
-        console.error("Erro ao carregar clientes:", error);
-        clientes = [];
-        render();
-      }
-    }
-
-    async function marcarPago(id) {
-      try {
-        await fetchJson(API + "/api/clients/pagar/" + id, { method: "POST" });
-
-        if (!pagos.includes(id)) {
-          pagos.push(id);
-        }
-
-        render();
-      } catch (error) {
-        alert("Erro ao marcar como pago.");
-      }
-    }
-
     function cobrarLista(lista, tipo) {
-      if (!lista.length) {
-        alert("Nenhum cliente encontrado nessa faixa.");
+      const clientesComNumero = lista.filter(cliente => contatos[cliente.id]);
+
+      if (!clientesComNumero.length) {
+        alert("Nenhum cliente com WhatsApp cadastrado nessa faixa.");
         return;
       }
 
-      lista.forEach((cliente, index) => {
-        const link = buildWhatsappLink(textoCobranca(cliente, tipo));
+      clientesComNumero.forEach((cliente, index) => {
+        const link = buildClientWhatsappLink(cliente, textoCobranca(cliente, tipo));
         setTimeout(() => {
           window.open(link, "_blank");
         }, index * 300);
@@ -654,12 +677,14 @@ Equipe MS TV`;
         return;
       }
 
-      if (!clientes.length) {
-        alert("Nenhum cliente para envio.");
+      const clientesComNumero = clientes.filter(cliente => contatos[cliente.id]);
+
+      if (!clientesComNumero.length) {
+        alert("Nenhum cliente com WhatsApp cadastrado.");
         return;
       }
 
-      clientes.forEach((cliente, index) => {
+      clientesComNumero.forEach((cliente, index) => {
         const text = `🔥 PROMOÇÃO DO DIA MS TV 🔥
 
 Olá, ${cliente.login}!
@@ -670,7 +695,8 @@ Aproveite agora e garanta o melhor do entretenimento com a MS TV 🚀
 
 Equipe MS TV 💙`;
 
-        const link = buildWhatsappLink(text);
+        const link = buildClientWhatsappLink(cliente, text);
+
         setTimeout(() => {
           window.open(link, "_blank");
         }, index * 250);
@@ -679,7 +705,6 @@ Equipe MS TV 💙`;
 
     function sortearCliente() {
       const elegiveis = clientesEmDiaParaSorteio();
-
       const box = document.getElementById("raffleResult");
 
       if (!elegiveis.length) {
@@ -755,7 +780,7 @@ Equipe MS TV 💙`;
           <div class="toolbar">
             <div>
               <h3 style="margin:0">Clientes sincronizados</h3>
-              <p class="muted" style="margin:6px 0 0">Pagos vão para o final da lista.</p>
+              <p class="muted" style="margin:6px 0 0">Cadastre o WhatsApp para cobrança e promoções diretas.</p>
             </div>
 
             <div class="filters">
@@ -789,9 +814,23 @@ Equipe MS TV 💙`;
                     <td><span class="${statusBadgeClass(c)}">${statusLabel(c)}</span></td>
                     <td>${Number(c.conexoesAtuais || 0)}/${Number(c.maxConexoes || 0)}</td>
                     <td>
-                      <div class="table-actions">
-                        <a class="mini-btn" target="_blank" href="${buildWhatsappLink(`Olá, tudo bem? Sua assinatura MS TV (${c.login}) vence em ${c.vencimento}. Caso queira, posso te enviar o PIX para renovação.`)}">WhatsApp</a>
-                        <button class="mini-btn blue" onclick="marcarPago('${c.id}')">${isPago(c.id) ? "Pago" : "Marcar pago"}</button>
+                      <div class="table-actions" style="flex-direction:column; align-items:flex-start;">
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+                          <input id="fone_${c.id}" placeholder="WhatsApp do cliente" value="${contatos[c.id] || ""}" style="min-width:180px;">
+                          <button class="mini-btn blue" onclick="salvarContato('${c.id}')">Salvar número</button>
+                        </div>
+
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                          <a class="mini-btn" target="_blank"
+                            href="${contatos[c.id] ? buildClientWhatsappLink(c, `Olá, tudo bem? Sua assinatura MS TV (${c.login}) vence em ${c.vencimento}. Caso queira, posso te enviar o PIX para renovação.`) : '#'}"
+                            onclick="${contatos[c.id] ? "" : "alert('Cadastre o WhatsApp do cliente primeiro.'); return false;"}">
+                            WhatsApp
+                          </a>
+
+                          <button class="mini-btn blue" onclick="marcarPago('${c.id}')">
+                            ${isPago(c.id) ? "Pago" : "Marcar pago"}
+                          </button>
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -820,12 +859,14 @@ Equipe MS TV 💙`;
       const listaHoje = clientesPorDias(0);
       const listaVencidos = clientesVencidos();
 
-      function bloco(titulo, subtitulo, lista, tipo) {
+      function bloco(titulo, subtitulo, lista, tipoRef, tipoTexto) {
+        window[tipoRef] = lista;
+
         return `
           <div class="charge-card">
             <h3 style="margin:0">${titulo}</h3>
             <p>${subtitulo}</p>
-            <button class="btn btn-green" onclick="cobrarLista(${tipo}, '${tipo.replace("lista", "")}')">Enviar cobrança</button>
+            <button class="btn btn-green" onclick="cobrarLista(window.${tipoRef}, '${tipoTexto}')">Enviar cobrança</button>
             <div class="charge-list">
               ${lista.length ? lista.map(c => `
                 <div class="charge-item">
@@ -838,12 +879,6 @@ Equipe MS TV 💙`;
         `;
       }
 
-      window.lista3 = lista3;
-      window.lista2 = lista2;
-      window.lista1 = lista1;
-      window.lista0 = listaHoje;
-      window.listaV = listaVencidos;
-
       app.innerHTML = `
         <div class="topbar">
           <div>
@@ -853,11 +888,11 @@ Equipe MS TV 💙`;
         </div>
 
         <div class="charge-grid">
-          ${bloco("Vence em 3 dias", "Cobrança preventiva", lista3, "lista3")}
-          ${bloco("Vence em 2 dias", "Lembrete antecipado", lista2, "lista2")}
-          ${bloco("Vence em 1 dia", "Lembrete de vencimento", lista1, "lista1")}
-          ${bloco("Vence hoje", "Cobrança do dia", listaHoje, "lista0")}
-          ${bloco("Vencidos", "Clientes em atraso", listaVencidos, "listaV")}
+          ${bloco("Vence em 3 dias", "Cobrança preventiva", lista3, "lista3", "3")}
+          ${bloco("Vence em 2 dias", "Lembrete antecipado", lista2, "lista2", "2")}
+          ${bloco("Vence em 1 dia", "Lembrete de vencimento", lista1, "lista1", "1")}
+          ${bloco("Vence hoje", "Cobrança do dia", listaHoje, "lista0", "0")}
+          ${bloco("Vencidos", "Clientes em atraso", listaVencidos, "listaV", "v")}
         </div>
       `;
     }
@@ -896,7 +931,7 @@ Equipe MS TV 💙`;
         <div class="topbar">
           <div>
             <h2>Promoção do dia</h2>
-            <p>Escreva a mensagem e envie para toda a base.</p>
+            <p>Escreva a mensagem e envie para os clientes com WhatsApp cadastrado.</p>
           </div>
         </div>
 
@@ -907,7 +942,7 @@ Equipe MS TV 💙`;
             <textarea id="promoMsg" placeholder="Ex: Hoje a MS TV está com condição especial de renovação..."></textarea>
           </div>
 
-          <button class="btn btn-green" onclick="enviarPromocaoMassa()">Enviar para todos os clientes</button>
+          <button class="btn btn-green" onclick="enviarPromocaoMassa()">Enviar para todos os clientes com número</button>
         </div>
       `;
     }
