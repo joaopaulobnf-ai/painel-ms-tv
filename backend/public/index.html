@@ -23,6 +23,7 @@
       --purple-soft:#ede9fe;
       --shadow:0 8px 24px rgba(15,23,42,.08);
       --radius:18px;
+      --surface:#f8fafc;
     }
 
     *{box-sizing:border-box}
@@ -52,18 +53,30 @@
     }
 
     .avatar-box{
-      text-align:center;
+      display:flex;
+      justify-content:center;
       margin-bottom:18px;
     }
 
-    .avatar-box img{
+    .avatar-frame{
       width:170px;
       height:170px;
-      object-fit:cover;
-      border-radius:24px;
-      border:3px solid rgba(255,255,255,.18);
+      border-radius:50%;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:transparent;
       box-shadow:0 10px 28px rgba(0,0,0,.28);
-      background:#fff;
+    }
+
+    .avatar-box img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      border-radius:50%;
+      display:block;
+      background:transparent;
     }
 
     .brand{
@@ -211,7 +224,6 @@
       justify-content:space-between;
       gap:12px;
       flex-wrap:wrap;
-      margin-bottom:14px;
     }
 
     .filters{
@@ -267,7 +279,7 @@
       border-bottom:1px solid #eef2f7;
       text-align:left;
       font-size:14px;
-      vertical-align:middle;
+      vertical-align:top;
     }
 
     th{
@@ -290,23 +302,103 @@
 
     .table-actions{
       display:flex;
+      flex-direction:column;
+      gap:12px;
+      min-width:290px;
+    }
+
+    .contact-card{
+      width:100%;
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:12px;
+    }
+
+    .contact-label{
+      display:block;
+      font-size:12px;
+      font-weight:700;
+      color:var(--muted);
+      margin-bottom:8px;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+    }
+
+    .contact-row{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .input-whatsapp{
+      flex:1;
+      min-width:170px;
+      border:1px solid #dbe2ea;
+      border-radius:12px;
+      padding:11px 12px;
+      font-size:14px;
+      background:#fff;
+      transition:.2s;
+      color:#111827;
+    }
+
+    .input-whatsapp:focus{
+      border-color:#22c55e;
+      outline:none;
+      box-shadow:0 0 0 3px rgba(34,197,94,.15);
+    }
+
+    .saved-phone{
+      font-size:12px;
+      color:#16a34a;
+      margin-top:8px;
+      font-weight:700;
+    }
+
+    .action-buttons{
+      display:flex;
       gap:8px;
       flex-wrap:wrap;
     }
 
     .mini-btn{
-      border:1px solid var(--line);
-      background:#fff;
-      padding:8px 10px;
-      border-radius:10px;
+      border:none;
+      padding:10px 14px;
+      border-radius:12px;
       cursor:pointer;
       font-size:13px;
       font-weight:700;
       text-decoration:none;
       color:#111827;
+      transition:.2s;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      line-height:1;
     }
 
-    .mini-btn.blue{background:var(--blue);color:#fff;border:none}
+    .mini-btn:hover{
+      transform:translateY(-1px);
+      opacity:.95;
+    }
+
+    .mini-btn.outline{
+      background:#fff;
+      border:1px solid #d1d5db;
+      color:#111827;
+    }
+
+    .mini-btn.blue{
+      background:linear-gradient(135deg,#3b82f6,#2563eb);
+      color:#fff;
+    }
+
+    .mini-btn.green{
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      color:#fff;
+    }
 
     .small-card{
       padding:14px;
@@ -391,7 +483,9 @@
   <div class="layout">
     <aside class="sidebar">
       <div class="avatar-box">
-        <img src="/avatar-ms-tv.png" alt="Avatar MS TV">
+        <div class="avatar-frame">
+          <img src="/avatar-ms-tv.png" alt="Avatar MS TV">
+        </div>
       </div>
 
       <div class="brand">
@@ -811,34 +905,56 @@ Equipe MS TV 💙`;
                 </tr>
               </thead>
               <tbody>
-                ${lista.length ? lista.map(c => `
-                  <tr>
-                    <td>${c.login}</td>
-                    <td>${c.vencimento || "-"}</td>
-                    <td><span class="${statusBadgeClass(c)}">${statusLabel(c)}</span></td>
-                    <td>${Number(c.conexoesAtuais || 0)}/${Number(c.maxConexoes || 0)}</td>
-                    <td>
-                      <div class="table-actions" style="flex-direction:column; align-items:flex-start;">
-                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-                          <input id="fone_${c.id}" placeholder="WhatsApp do cliente" value="${contatos[c.id] || ""}" style="min-width:180px;">
-                          <button class="mini-btn blue" onclick="salvarContato('${c.id}')">Salvar número</button>
-                        </div>
+                ${
+                  lista.length
+                    ? lista.map(c => `
+                      <tr>
+                        <td>${c.login}</td>
+                        <td>${c.vencimento || "-"}</td>
+                        <td><span class="${statusBadgeClass(c)}">${statusLabel(c)}</span></td>
+                        <td>${Number(c.conexoesAtuais || 0)}/${Number(c.maxConexoes || 0)}</td>
+                        <td>
+                          <div class="table-actions">
+                            <div class="contact-card">
+                              <span class="contact-label">WhatsApp do cliente</span>
+                              <div class="contact-row">
+                                <input
+                                  id="fone_${c.id}"
+                                  class="input-whatsapp"
+                                  placeholder="Ex: 62999999999"
+                                  value="${contatos[c.id] || ""}"
+                                >
+                                <button class="mini-btn green" onclick="salvarContato('${c.id}')">
+                                  Salvar
+                                </button>
+                              </div>
+                              ${
+                                contatos[c.id]
+                                  ? `<div class="saved-phone">Número salvo: ${contatos[c.id]}</div>`
+                                  : ""
+                              }
+                            </div>
 
-                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                          <a class="mini-btn" target="_blank"
-                            href="${contatos[c.id] ? buildClientWhatsappLink(c, `Olá, tudo bem? Sua assinatura MS TV (${c.login}) vence em ${c.vencimento}. Caso queira, posso te enviar o PIX para renovação.`) : '#'}"
-                            onclick="${contatos[c.id] ? "" : "alert('Cadastre o WhatsApp do cliente primeiro.'); return false;"}">
-                            WhatsApp
-                          </a>
+                            <div class="action-buttons">
+                              <a
+                                class="mini-btn outline"
+                                target="_blank"
+                                href="${contatos[c.id] ? buildClientWhatsappLink(c, `Olá, tudo bem? Sua assinatura MS TV (${c.login}) vence em ${c.vencimento}. Caso queira, posso te enviar o PIX para renovação.`) : '#'}"
+                                onclick="${contatos[c.id] ? "" : "alert('Cadastre o WhatsApp do cliente primeiro.'); return false;"}"
+                              >
+                                WhatsApp
+                              </a>
 
-                          <button class="mini-btn blue" onclick="marcarPago('${c.id}')">
-                            ${isPago(c.id) ? "Pago" : "Marcar pago"}
-                          </button>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                `).join("") : `<tr><td colspan="5" class="empty">Nenhum cliente encontrado.</td></tr>`}
+                              <button class="mini-btn blue" onclick="marcarPago('${c.id}')">
+                                ${isPago(c.id) ? "Pago" : "Marcar pago"}
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    `).join("")
+                    : `<tr><td colspan="5" class="empty">Nenhum cliente encontrado.</td></tr>`
+                }
               </tbody>
             </table>
           </div>
