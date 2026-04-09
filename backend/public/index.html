@@ -11,16 +11,14 @@
       --text:#111827;
       --muted:#6b7280;
       --line:#e5e7eb;
-      --sidebar1:#0b1220;
-      --sidebar2:#111827;
+      --sidebar1:#071226;
+      --sidebar2:#0f172a;
       --green:#16a34a;
       --green-soft:#dcfce7;
       --blue:#2563eb;
       --blue-soft:#dbeafe;
       --red:#dc2626;
       --red-soft:#fee2e2;
-      --amber:#d97706;
-      --amber-soft:#fef3c7;
       --purple:#7c3aed;
       --purple-soft:#ede9fe;
       --shadow:0 8px 24px rgba(15,23,42,.08);
@@ -42,7 +40,7 @@
     }
 
     .sidebar{
-      width:280px;
+      width:300px;
       background:linear-gradient(180deg,var(--sidebar1) 0%,var(--sidebar2) 100%);
       color:#fff;
       padding:24px 18px;
@@ -50,15 +48,32 @@
       position:sticky;
       top:0;
       height:100vh;
+      overflow:auto;
+    }
+
+    .avatar-box{
+      text-align:center;
+      margin-bottom:18px;
+    }
+
+    .avatar-box img{
+      width:170px;
+      height:170px;
+      object-fit:cover;
+      border-radius:24px;
+      border:3px solid rgba(255,255,255,.18);
+      box-shadow:0 10px 28px rgba(0,0,0,.28);
+      background:#fff;
     }
 
     .brand{
-      margin-bottom:28px;
+      margin-bottom:22px;
+      text-align:center;
     }
 
     .brand h1{
       margin:0;
-      font-size:36px;
+      font-size:34px;
       line-height:1;
       font-weight:800;
       letter-spacing:-1px;
@@ -154,7 +169,6 @@
     .btn-green{background:var(--green);color:#fff}
     .btn-blue{background:var(--blue);color:#fff}
     .btn-red{background:var(--red);color:#fff}
-    .btn-light{background:#fff;color:#111827;border:1px solid var(--line)}
 
     .grid{
       display:grid;
@@ -292,7 +306,6 @@
       color:#111827;
     }
 
-    .mini-btn.green{background:var(--green);color:#fff;border:none}
     .mini-btn.blue{background:var(--blue);color:#fff;border:none}
 
     .small-card{
@@ -309,19 +322,6 @@
     }
 
     .muted{
-      color:var(--muted);
-    }
-
-    .section-block{
-      margin-bottom:18px;
-    }
-
-    .section-block h3{
-      margin:0 0 6px;
-    }
-
-    .section-block p{
-      margin:0 0 10px;
       color:var(--muted);
     }
 
@@ -390,6 +390,10 @@
 <body>
   <div class="layout">
     <aside class="sidebar">
+      <div class="avatar-box">
+        <img src="/avatar-ms-tv.png" alt="Avatar MS TV">
+      </div>
+
       <div class="brand">
         <h1>MS TV</h1>
         <p>Painel de clientes, cobranças, promoções e sorteio mensal.</p>
@@ -417,7 +421,6 @@
 
   <script>
     const API = window.location.origin;
-    const WHATSAPP_MS_TV = "5562991133110";
     const VALOR_MENSAL = 30;
 
     let screen = "dashboard";
@@ -524,9 +527,10 @@
       return clientes.filter(c => isPago(c.id) && c.status !== "vencido");
     }
 
-    async function carregar() {
+    async function carregar(forceSync = true) {
       try {
-        const data = await fetchJson(API + "/api/clients/sync");
+        const rota = forceSync ? "/api/clients/sync" : "/api/clients";
+        const data = await fetchJson(API + rota);
         clientes = data.clients || [];
 
         const pagosRes = await fetchJson(API + "/api/clients/pagos");
@@ -732,7 +736,7 @@ Equipe MS TV 💙`;
             <h2>Dashboard</h2>
             <p>Resumo geral do painel MS TV.</p>
           </div>
-          <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
+          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
         </div>
 
         <section class="grid cards">
@@ -752,7 +756,7 @@ Equipe MS TV 💙`;
               <button class="btn btn-green" onclick="cobrarLista(clientesPorDias(1), '1')">Cobrar em 1 dia (${em1})</button>
               <button class="btn btn-red" onclick="cobrarLista(clientesPorDias(0), '0')">Cobrar hoje (${hoje})</button>
             </div>
-            <p class="notice">Os clientes pagos ficam no final da lista. A receita bruta soma sempre que marcar como pago.</p>
+            <p class="notice">Sincronização ao clicar em “Atualizar agora”. Clientes pagos vão para o final da lista.</p>
           </div>
 
           <div class="card">
@@ -773,7 +777,7 @@ Equipe MS TV 💙`;
             <h2>Clientes</h2>
             <p>Lista completa, ordenada por vencimento.</p>
           </div>
-          <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
+          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
         </div>
 
         <div class="card">
@@ -885,6 +889,7 @@ Equipe MS TV 💙`;
             <h2>Cobranças WhatsApp</h2>
             <p>Blocos separados por vencimento com mensagens profissionais.</p>
           </div>
+          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
         </div>
 
         <div class="charge-grid">
@@ -909,6 +914,7 @@ Equipe MS TV 💙`;
             <h2>Financeiro</h2>
             <p>Alimentado sempre que um cliente é marcado como pago.</p>
           </div>
+          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
         </div>
 
         <div class="grid cards">
@@ -916,12 +922,6 @@ Equipe MS TV 💙`;
           <div class="card"><div class="card-title">Clientes pagos no mês</div><div class="card-value">${clientesPagos}</div></div>
           <div class="card"><div class="card-title">Receita total bruta</div><div class="card-value">R$ ${receitaBruta.toFixed(2).replace(".", ",")}</div></div>
           <div class="card"><div class="card-title">Receita em risco</div><div class="card-value">R$ ${receitaRisco.toFixed(2).replace(".", ",")}</div></div>
-        </div>
-
-        <div class="card">
-          <h3 style="margin-top:0">Resumo</h3>
-          <div class="small-card"><strong>Pagamentos confirmados:</strong> ${clientesPagos}</div>
-          <div class="small-card"><strong>Receita bruta acumulada:</strong> R$ ${receitaBruta.toFixed(2).replace(".", ",")}</div>
         </div>
       `;
     }
@@ -933,15 +933,12 @@ Equipe MS TV 💙`;
             <h2>Promoção do dia</h2>
             <p>Escreva a mensagem e envie para os clientes com WhatsApp cadastrado.</p>
           </div>
+          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
         </div>
 
         <div class="promo-box">
-          <div class="section-block">
-            <h3>Mensagem promocional</h3>
-            <p>Use um texto curto, objetivo e atraente.</p>
-            <textarea id="promoMsg" placeholder="Ex: Hoje a MS TV está com condição especial de renovação..."></textarea>
-          </div>
-
+          <textarea id="promoMsg" placeholder="Ex: Hoje a MS TV está com condição especial de renovação..."></textarea>
+          <br><br>
           <button class="btn btn-green" onclick="enviarPromocaoMassa()">Enviar para todos os clientes com número</button>
         </div>
       `;
@@ -956,6 +953,7 @@ Equipe MS TV 💙`;
             <h2>Sorteio do mês</h2>
             <p>Participam clientes marcados como pagos antes ou até o vencimento.</p>
           </div>
+          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
         </div>
 
         <div class="raffle-box">
@@ -975,7 +973,7 @@ Equipe MS TV 💙`;
       if (screen === "sorteio") return renderSorteio();
     }
 
-    carregar();
+    carregar(true);
   </script>
 </body>
 </html>
