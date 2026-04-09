@@ -11,16 +11,15 @@
       --text:#111827;
       --muted:#6b7280;
       --line:#e5e7eb;
-      --dark:#0a0a0a;
       --green:#10b981;
-      --amber:#f59e0b;
       --red:#ef4444;
       --blue:#3b82f6;
+      --amber:#f59e0b;
     }
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family:Arial, Helvetica, sans-serif;
+      font-family:Arial,Helvetica,sans-serif;
       background:var(--bg);
       color:var(--text);
     }
@@ -50,8 +49,7 @@
       text-decoration:none;
       margin-bottom:8px;
     }
-    .nav a.active,
-    .nav a:hover{
+    .nav a.active,.nav a:hover{
       background:#fff;
       color:#09090b;
       font-weight:700;
@@ -85,7 +83,7 @@
     }
     .row{
       display:grid;
-      grid-template-columns:1.4fr .9fr;
+      grid-template-columns:1.45fr .95fr;
       gap:20px;
     }
     .toolbar{
@@ -99,8 +97,8 @@
       border:none;
       background:#111827;
       color:#fff;
-      padding:12px 16px;
-      border-radius:14px;
+      padding:10px 14px;
+      border-radius:12px;
       font-weight:700;
       cursor:pointer;
     }
@@ -108,6 +106,20 @@
       background:#fff;
       color:#111827;
       border:1px solid var(--line);
+    }
+    .btn.whatsapp{
+      background:#16a34a;
+      color:#fff;
+    }
+    .btn.paid{
+      background:#2563eb;
+      color:#fff;
+    }
+    .btn-group{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:14px;
     }
     input,select{
       padding:10px 12px;
@@ -124,6 +136,7 @@
       border-bottom:1px solid #f1f5f9;
       text-align:left;
       font-size:14px;
+      vertical-align:middle;
     }
     th{
       color:var(--muted);
@@ -134,7 +147,6 @@
       border-radius:999px;
       font-size:12px;
       font-weight:700;
-      text-transform:capitalize;
     }
     .ativo{
       background:#d1fae5;
@@ -144,10 +156,13 @@
       background:#dbeafe;
       color:#1d4ed8;
     }
-    .vencido,
-    .inativo{
+    .vencido,.inativo{
       background:#fee2e2;
       color:#b91c1c;
+    }
+    .pago{
+      background:#e0e7ff;
+      color:#3730a3;
     }
     .small-card{
       padding:14px;
@@ -159,15 +174,21 @@
     .muted{
       color:var(--muted);
     }
-    .actions a{
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .actions a, .actions button{
       display:inline-block;
       padding:8px 10px;
       border-radius:10px;
       border:1px solid var(--line);
       text-decoration:none;
       color:#111827;
-      margin-right:8px;
       background:#fff;
+      cursor:pointer;
+      font-size:13px;
     }
     .top{
       display:flex;
@@ -188,6 +209,11 @@
     .empty{
       color:var(--muted);
       padding:18px 0;
+    }
+    .notice{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:8px;
     }
     @media(max-width:980px){
       .layout{grid-template-columns:1fr}
@@ -213,7 +239,7 @@
     <div class="top">
       <div>
         <h2 class="section-title">Dashboard</h2>
-        <div class="muted">Versão inicial conectada ao backend.</div>
+        <div class="muted">Versão conectada ao backend.</div>
       </div>
       <button class="btn" id="reloadBtn">Atualizar agora</button>
     </div>
@@ -235,8 +261,20 @@
               <option value="teste">Teste</option>
               <option value="vencido">Vencido</option>
               <option value="inativo">Inativo</option>
+              <option value="pago">Marcados como pagos</option>
             </select>
           </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn whatsapp" onclick="cobrarPorDias(3)">Cobrar em 3 dias</button>
+          <button class="btn whatsapp" onclick="cobrarPorDias(2)">Cobrar em 2 dias</button>
+          <button class="btn whatsapp" onclick="cobrarPorDias(1)">Cobrar em 1 dia</button>
+          <button class="btn whatsapp" onclick="cobrarPorDias(0)">Cobrar hoje</button>
+        </div>
+
+        <div class="notice">
+          Clientes são ordenados por vencimento. Ao marcar como pago, vão para o final da lista até recarregar a página.
         </div>
 
         <div class="wrap" style="margin-top:16px">
@@ -277,20 +315,26 @@
   const WHATSAPP_PHONE = "62991133110";
 
   let allClients = [];
-  let financeSummary = null;
+  let paidClients = new Set();
 
-  function badgeClass(status) {
+  function badgeClass(status, marcadoPago = false) {
+    if (marcadoPago) return "pago";
     if (status === "ativo") return "ativo";
     if (status === "teste") return "teste";
-    if (status === "vencido") return "vencido";
-    return "inativo";
+    return "vencido";
+  }
+
+  function statusLabel(status, marcadoPago = false) {
+    if (marcadoPago) return "Pago";
+    if (status === "ativo") return "Ativo";
+    if (status === "teste") return "Teste";
+    if (status === "vencido") return "Vencido";
+    return "Inativo";
   }
 
   async function fetchJson(url) {
     const res = await fetch(url);
-    if (!res.ok) {
-      throw new Error("Falha ao carregar " + url);
-    }
+    if (!res.ok) throw new Error("Falha ao carregar " + url);
     return res.json();
   }
 
@@ -301,26 +345,85 @@
     return new Date(year, month - 1, day, 12, 0, 0);
   }
 
-  function diffInDays(dateA, dateB) {
+  function diffInDays(targetDate, baseDate = new Date()) {
     const oneDay = 1000 * 60 * 60 * 24;
-    const utcA = Date.UTC(dateA.getFullYear(), dateA.getMonth(), dateA.getDate());
-    const utcB = Date.UTC(dateB.getFullYear(), dateB.getMonth(), dateB.getDate());
-    return Math.floor((utcA - utcB) / oneDay);
+    const utcTarget = Date.UTC(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    const utcBase = Date.UTC(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
+    return Math.floor((utcTarget - utcBase) / oneDay);
   }
 
-  function getExpiringClients(clients, days = 3) {
+  function sortClients(clients) {
+    return [...clients].sort((a, b) => {
+      const aPaid = paidClients.has(a.id);
+      const bPaid = paidClients.has(b.id);
+
+      if (aPaid !== bPaid) return aPaid ? 1 : -1;
+
+      const da = parseBrDateToDate(a.vencimento);
+      const db = parseBrDateToDate(b.vencimento);
+
+      if (!da && !db) return (a.login || "").localeCompare(b.login || "");
+      if (!da) return 1;
+      if (!db) return -1;
+
+      return da - db;
+    });
+  }
+
+  function getClientsByDueDays(days) {
     const today = new Date();
-    return clients.filter((c) => {
-      if (!c.vencimento || c.status === "vencido") return false;
+    return allClients.filter((c) => {
+      if (paidClients.has(c.id)) return false;
+      if (c.status === "vencido") return false;
+      const due = parseBrDateToDate(c.vencimento);
+      if (!due) return false;
+      return diffInDays(due, today) === days;
+    });
+  }
+
+  function getExpiringClients(maxDays = 3) {
+    const today = new Date();
+    return sortClients(allClients).filter((c) => {
+      if (paidClients.has(c.id)) return false;
+      if (c.status === "vencido") return false;
       const due = parseBrDateToDate(c.vencimento);
       if (!due) return false;
       const diff = diffInDays(due, today);
-      return diff >= 0 && diff <= days;
-    }).sort((a, b) => {
-      const da = parseBrDateToDate(a.vencimento);
-      const db = parseBrDateToDate(b.vencimento);
-      return da - db;
+      return diff >= 0 && diff <= maxDays;
     });
+  }
+
+  function buildWhatsappLink(client, customText = "") {
+    const phone = WHATSAPP_PHONE.replace(/\D/g, "");
+    const message = customText || `Olá, tudo bem? Sua lista ${client.login} vence em ${client.vencimento}.`;
+    return `https://wa.me/55${phone}?text=${encodeURIComponent(message)}`;
+  }
+
+  function cobrarPorDias(days) {
+    const clients = getClientsByDueDays(days);
+
+    if (!clients.length) {
+      alert(`Nenhum cliente encontrado para vencimento em ${days} dia(s).`);
+      return;
+    }
+
+    clients.forEach((client, index) => {
+      const text = `Olá, tudo bem? Sua lista ${client.login} vence ${days === 0 ? "hoje" : `em ${days} dia(s)`}, na data ${client.vencimento}. Caso deseje, posso te passar o PIX para renovação.`;
+      const url = buildWhatsappLink(client, text);
+
+      setTimeout(() => {
+        window.open(url, "_blank");
+      }, index * 350);
+    });
+  }
+
+  function marcarComoPago(id) {
+    if (paidClients.has(id)) {
+      paidClients.delete(id);
+    } else {
+      paidClients.add(id);
+    }
+    applyFilters();
   }
 
   function renderStats(data) {
@@ -349,20 +452,21 @@
     }
 
     tbody.innerHTML = clients.map((c) => {
-      const dueDate = c.vencimento || "";
-      const login = c.login || "";
-      const phone = WHATSAPP_PHONE.replace(/\D/g, "");
-      const message = `Olá, tudo bem? Sua lista ${login} ${dueDate ? `vence em ${dueDate}` : ""}.`;
-      const waLink = `https://wa.me/55${phone}?text=${encodeURIComponent(message)}`;
-
+      const marcadoPago = paidClients.has(c.id);
+      const link = buildWhatsappLink(c);
       return `
         <tr>
-          <td>${login}</td>
-          <td>${dueDate || "-"}</td>
-          <td><span class="badge ${badgeClass(c.status)}">${c.status}</span></td>
+          <td>${c.login}</td>
+          <td>${c.vencimento || "-"}</td>
+          <td><span class="badge ${badgeClass(c.status, marcadoPago)}">${statusLabel(c.status, marcadoPago)}</span></td>
           <td>${Number(c.conexoesAtuais || 0)}/${Number(c.maxConexoes || 0)}</td>
-          <td class="actions">
-            <a target="_blank" href="${waLink}">WhatsApp</a>
+          <td>
+            <div class="actions">
+              <a target="_blank" href="${link}">WhatsApp</a>
+              <button class="btn paid" onclick="marcarComoPago('${c.id}')">
+                ${marcadoPago ? "Desfazer pago" : "Marcar pago"}
+              </button>
+            </div>
           </td>
         </tr>
       `;
@@ -371,11 +475,11 @@
 
   function renderFinance(data) {
     const mensalidadeBase = Number(data.mensalidadeBase || 30);
-    const clientesPagantes = Number(data.pagantes || 0);
-    const receitaPrevista = Number(data.receitaPrevista || 0);
+    const clientesPagantes = allClients.filter(c => !c.teste).length;
+    const receitaPrevista = clientesPagantes * mensalidadeBase;
 
-    const ativosPagantes = allClients.filter((c) => c.status === "ativo" && c.teste !== true).length;
-    const vencidosPagantes = allClients.filter((c) => c.status === "vencido" && c.teste !== true).length;
+    const ativosPagantes = allClients.filter((c) => c.status === "ativo" && !c.teste && !paidClients.has(c.id)).length;
+    const vencidosPagantes = allClients.filter((c) => c.status === "vencido" && !c.teste && !paidClients.has(c.id)).length;
 
     const receitaAtiva = ativosPagantes * mensalidadeBase;
     const receitaEmRisco = vencidosPagantes * mensalidadeBase;
@@ -405,7 +509,7 @@
     box.innerHTML = clients.map((c) => `
       <div class="small-card">
         <strong>${c.login}</strong>
-        <div class="muted">Vence: ${c.vencimento || "-"} • ${c.status}</div>
+        <div class="muted">Vence: ${c.vencimento || "-"} • ${statusLabel(c.status, paidClients.has(c.id)).toLowerCase()}</div>
       </div>
     `).join("");
   }
@@ -414,28 +518,27 @@
     const q = document.getElementById("search").value.trim().toLowerCase();
     const status = document.getElementById("statusFilter").value;
 
-    let filtered = [...allClients];
+    let filtered = sortClients(allClients);
 
     if (q) {
       filtered = filtered.filter((c) => (c.login || "").toLowerCase().includes(q));
     }
 
-    if (status) {
-      filtered = filtered.filter((c) => c.status === status);
+    if (status === "pago") {
+      filtered = filtered.filter((c) => paidClients.has(c.id));
+    } else if (status) {
+      filtered = filtered.filter((c) => !paidClients.has(c.id) && c.status === status);
     }
 
     renderClients(filtered);
+    renderFinance({ mensalidadeBase: 30 });
+    renderExpiring(getExpiringClients(3));
   }
 
   async function load() {
     try {
-      const [clientsData, financeData] = await Promise.all([
-        fetchJson(API + "/api/clients/sync"),
-        fetchJson(API + "/api/finance/summary")
-      ]);
-
-      allClients = Array.isArray(clientsData.clients) ? clientsData.clients : [];
-      financeSummary = financeData || {};
+      const data = await fetchJson(API + "/api/clients/sync");
+      allClients = Array.isArray(data.clients) ? data.clients : [];
 
       const totalClientes = allClients.length;
       const ativos = allClients.filter((c) => c.status === "ativo").length;
@@ -450,8 +553,6 @@
         online: 0
       });
 
-      renderFinance(financeSummary);
-      renderExpiring(getExpiringClients(allClients, 3));
       applyFilters();
     } catch (e) {
       alert("Erro ao carregar painel: " + e.message);
