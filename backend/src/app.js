@@ -37,7 +37,7 @@ function basicAuth(req, res, next) {
     return res.status(401).send("Usuário ou senha inválidos");
   }
 
-  next();
+  return next();
 }
 
 app.use(cors());
@@ -49,7 +49,10 @@ app.use(basicAuth);
 app.use(express.static(publicDir));
 
 app.get("/health", (req, res) => {
-  res.json({ result: true, message: "API do painel MS TV online." });
+  res.json({
+    result: true,
+    message: "API do painel MS TV online."
+  });
 });
 
 app.use("/api/clients", clientsRoutes);
