@@ -315,13 +315,8 @@
       z-index:2;
     }
 
-    thead th:first-child{
-      border-top-left-radius:18px;
-    }
-
-    thead th:last-child{
-      border-top-right-radius:18px;
-    }
+    thead th:first-child{border-top-left-radius:18px}
+    thead th:last-child{border-top-right-radius:18px}
 
     tbody td{
       padding:18px 16px;
@@ -525,23 +520,40 @@
     .charge-card{
       background:#fff;
       border:1px solid var(--line);
-      border-radius:18px;
+      border-radius:22px;
       padding:16px;
       box-shadow:var(--shadow);
     }
 
+    .charge-card h3{
+      margin:0 0 10px;
+      font-size:18px;
+    }
+
+    .charge-card p{
+      margin:0 0 14px;
+      color:#334155;
+      min-height:40px;
+    }
+
     .charge-list{
-      margin-top:10px;
+      margin-top:14px;
       max-height:320px;
       overflow:auto;
-      border-top:1px solid #f1f5f9;
-      padding-top:10px;
+      border-top:1px solid #eef2f7;
+      padding-top:12px;
     }
 
     .charge-item{
       padding:10px 0;
-      border-bottom:1px solid #f8fafc;
+      border-bottom:1px solid #f1f5f9;
       font-size:14px;
+    }
+
+    .charge-item strong{
+      display:block;
+      margin-bottom:4px;
+      color:#0f172a;
     }
 
     .promo-box, .raffle-box{
@@ -639,10 +651,38 @@
       return res.json();
     }
 
+    function formatDateDisplay(value) {
+      if (!value) return "-";
+
+      const isoMatch = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (isoMatch) {
+        const [, yyyy, mm, dd] = isoMatch;
+        return `${dd}/${mm}/${yyyy}`;
+      }
+
+      const brMatch = String(value).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (brMatch) {
+        return value;
+      }
+
+      const parsed = new Date(value);
+      if (!Number.isNaN(parsed.getTime())) {
+        const dd = String(parsed.getUTCDate()).padStart(2, "0");
+        const mm = String(parsed.getUTCMonth() + 1).padStart(2, "0");
+        const yyyy = parsed.getUTCFullYear();
+        return `${dd}/${mm}/${yyyy}`;
+      }
+
+      return String(value);
+    }
+
     function parseBrDate(dateStr) {
-      if (!dateStr || !dateStr.includes("/")) return null;
-      const [day, month, year] = dateStr.split("/").map(Number);
-      return new Date(year, month - 1, day, 12, 0, 0);
+      const formatted = formatDateDisplay(dateStr);
+      const match = formatted.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (!match) return null;
+
+      const [, dd, mm, yyyy] = match;
+      return new Date(Number(yyyy), Number(mm) - 1, Number(dd), 12, 0, 0);
     }
 
     function diffDays(dateStr) {
@@ -727,7 +767,10 @@
       try {
         const rota = forceSync ? "/api/clients/sync" : "/api/clients";
         const data = await fetchJson(API + rota);
-        clientes = data.clients || [];
+        clientes = (data.clients || []).map(cliente => ({
+          ...cliente,
+          vencimento: formatDateDisplay(cliente.vencimento || cliente.vencimentoIso)
+        }));
 
         const pagosRes = await fetchJson(API + "/api/clients/pagos");
         pagos = pagosRes || [];
@@ -814,7 +857,7 @@
 
     function textoCobranca(cliente, tipo) {
       const login = cliente.login;
-      const data = cliente.vencimento;
+      const data = formatDateDisplay(cliente.vencimento);
 
       if (tipo === "3") {
         return `Olá, tudo bem? 😊
@@ -1033,7 +1076,7 @@ Equipe MS TV 💙`;
                       ? lista.map(c => `
                         <tr>
                           <td class="login-cell">${c.login}</td>
-                          <td class="date-cell">${c.vencimento || "-"}</td>
+                          <td class="date-cell">${formatDateDisplay(c.vencimento)}</td>
                           <td><span class="${statusBadgeClass(c)}">${statusLabel(c)}</span></td>
                           <td class="conn-cell">${Number(c.conexoesAtuais || 0)}/${Number(c.maxConexoes || 0)}</td>
                           <td>
@@ -1072,7 +1115,7 @@ Equipe MS TV 💙`;
                                 <a
                                   class="mini-btn outline"
                                   target="_blank"
-                                  href="${contatos[c.id] ? buildClientWhatsappLink(c, `Olá, tudo bem? Sua assinatura MS TV (${c.login}) vence em ${c.vencimento}. Caso queira, posso te enviar o PIX para renovação.`) : '#'}"
+                                  href="${contatos[c.id] ? buildClientWhatsappLink(c, `Olá, tudo bem? Sua assinatura MS TV (${c.login}) vence em ${formatDateDisplay(c.vencimento)}. Caso queira, posso te enviar o PIX para renovação.`) : '#'}"
                                   onclick="${contatos[c.id] ? "" : "alert('Cadastre o WhatsApp do cliente primeiro.'); return false;"}"
                                 >
                                   WhatsApp
@@ -1096,136 +1139,3 @@ Equipe MS TV 💙`;
           </div>
         </div>
       `;
-
-      document.getElementById("searchInput").addEventListener("input", (e) => {
-        filtroBusca = e.target.value;
-        renderClientes();
-      });
-
-      document.getElementById("statusSelect").addEventListener("change", (e) => {
-        filtroStatus = e.target.value;
-        renderClientes();
-      });
-    }
-
-    function renderCobrancas() {
-      const lista3 = clientesPorDias(3);
-      const lista2 = clientesPorDias(2);
-      const lista1 = clientesPorDias(1);
-      const listaHoje = clientesPorDias(0);
-      const listaVencidos = clientesVencidos();
-
-      function bloco(titulo, subtitulo, lista, tipoRef, tipoTexto) {
-        window[tipoRef] = lista;
-
-        return `
-          <div class="charge-card">
-            <h3 style="margin:0">${titulo}</h3>
-            <p>${subtitulo}</p>
-            <button class="btn btn-green" onclick="cobrarLista(window.${tipoRef}, '${tipoTexto}')">Enviar cobrança</button>
-            <div class="charge-list">
-              ${lista.length ? lista.map(c => `
-                <div class="charge-item">
-                  <strong>${c.login}</strong><br>
-                  <span class="muted">Vencimento: ${c.vencimento}</span>
-                </div>
-              `).join("") : `<div class="empty">Nenhum cliente nesta faixa.</div>`}
-            </div>
-          </div>
-        `;
-      }
-
-      app.innerHTML = `
-        <div class="topbar">
-          <div>
-            <h2>Cobranças WhatsApp</h2>
-            <p>Blocos separados por vencimento com mensagens profissionais.</p>
-          </div>
-          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
-        </div>
-
-        <div class="charge-grid">
-          ${bloco("Vence em 3 dias", "Cobrança preventiva", lista3, "lista3", "3")}
-          ${bloco("Vence em 2 dias", "Lembrete antecipado", lista2, "lista2", "2")}
-          ${bloco("Vence em 1 dia", "Lembrete de vencimento", lista1, "lista1", "1")}
-          ${bloco("Vence hoje", "Cobrança do dia", listaHoje, "lista0", "0")}
-          ${bloco("Vencidos", "Clientes em atraso", listaVencidos, "listaV", "v")}
-        </div>
-      `;
-    }
-
-    function renderFinanceiro() {
-      const receitaBruta = pagos.length * VALOR_MENSAL;
-      const clientesPagos = pagos.length;
-      const clientesEmRisco = clientes.filter(c => !isPago(c.id) && c.status === "vencido").length;
-      const receitaRisco = clientesEmRisco * VALOR_MENSAL;
-
-      app.innerHTML = `
-        <div class="topbar">
-          <div>
-            <h2>Financeiro</h2>
-            <p>Alimentado sempre que um cliente é marcado como pago.</p>
-          </div>
-          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
-        </div>
-
-        <div class="grid cards">
-          <div class="card"><div class="card-title">Mensalidade base</div><div class="card-value">R$ ${VALOR_MENSAL.toFixed(2).replace(".", ",")}</div></div>
-          <div class="card"><div class="card-title">Clientes pagos no mês</div><div class="card-value">${clientesPagos}</div></div>
-          <div class="card"><div class="card-title">Receita total bruta</div><div class="card-value">R$ ${receitaBruta.toFixed(2).replace(".", ",")}</div></div>
-          <div class="card"><div class="card-title">Receita em risco</div><div class="card-value">R$ ${receitaRisco.toFixed(2).replace(".", ",")}</div></div>
-        </div>
-      `;
-    }
-
-    function renderPromocao() {
-      app.innerHTML = `
-        <div class="topbar">
-          <div>
-            <h2>Promoção do dia</h2>
-            <p>Escreva a mensagem e envie para os clientes com WhatsApp cadastrado.</p>
-          </div>
-          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
-        </div>
-
-        <div class="promo-box">
-          <textarea id="promoMsg" placeholder="Ex: Hoje a MS TV está com condição especial de renovação..."></textarea>
-          <br><br>
-          <button class="btn btn-green" onclick="enviarPromocaoMassa()">Enviar para todos os clientes com número</button>
-        </div>
-      `;
-    }
-
-    function renderSorteio() {
-      const elegiveis = clientesEmDiaParaSorteio();
-
-      app.innerHTML = `
-        <div class="topbar">
-          <div>
-            <h2>Sorteio do mês</h2>
-            <p>Participam clientes marcados como pagos antes ou até o vencimento.</p>
-          </div>
-          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
-        </div>
-
-        <div class="raffle-box">
-          <div class="small-card"><strong>Clientes elegíveis:</strong> ${elegiveis.length}</div>
-          <button class="btn btn-green" onclick="sortearCliente()">Rodar sorteio</button>
-          <div id="raffleResult" class="result-box">Clique no botão para realizar o sorteio.</div>
-        </div>
-      `;
-    }
-
-    function render() {
-      if (screen === "dashboard") return renderDashboard();
-      if (screen === "clientes") return renderClientes();
-      if (screen === "cobrancas") return renderCobrancas();
-      if (screen === "financeiro") return renderFinanceiro();
-      if (screen === "promocao") return renderPromocao();
-      if (screen === "sorteio") return renderSorteio();
-    }
-
-    carregar(true);
-  </script>
-</body>
-</html>
