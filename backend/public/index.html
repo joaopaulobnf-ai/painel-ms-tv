@@ -1,570 +1,179 @@
-<!doctype html>
-<html lang="pt-BR">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MS TV Admin</title>
-  <style>
-    :root{
-      --bg:#f3f4f6;
-      --card:#fff;
-      --text:#111827;
-      --muted:#6b7280;
-      --line:#e5e7eb;
-      --green:#10b981;
-      --red:#ef4444;
-      --blue:#3b82f6;
-      --amber:#f59e0b;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:Arial,Helvetica,sans-serif;
-      background:var(--bg);
-      color:var(--text);
-    }
-    .layout{
-      display:grid;
-      grid-template-columns:260px 1fr;
-      min-height:100vh;
-    }
-    .sidebar{
-      background:#09090b;
-      color:#fff;
-      padding:24px;
-    }
-    .sidebar h1{
-      margin:0 0 6px;
-      font-size:28px;
-    }
-    .sidebar p{
-      margin:0 0 24px;
-      color:#a1a1aa;
-    }
-    .nav a{
-      display:block;
-      padding:12px 14px;
-      border-radius:14px;
-      color:#d4d4d8;
-      text-decoration:none;
-      margin-bottom:8px;
-    }
-    .nav a.active,.nav a:hover{
-      background:#fff;
-      color:#09090b;
-      font-weight:700;
-    }
-    .main{
-      padding:24px;
-    }
-    .grid{
-      display:grid;
-      gap:16px;
-    }
-    .cards{
-      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-      margin-bottom:24px;
-    }
-    .card{
-      background:var(--card);
-      padding:18px;
-      border-radius:24px;
-      border:1px solid var(--line);
-      box-shadow:0 1px 2px rgba(0,0,0,.04);
-    }
-    .card .label{
-      color:var(--muted);
-      font-size:14px;
-    }
-    .card .value{
-      font-size:32px;
-      font-weight:700;
-      margin-top:10px;
-    }
-    .row{
-      display:grid;
-      grid-template-columns:1.45fr .95fr;
-      gap:20px;
-    }
-    .toolbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      flex-wrap:wrap;
-    }
-    .btn{
-      border:none;
-      background:#111827;
-      color:#fff;
-      padding:10px 14px;
-      border-radius:12px;
-      font-weight:700;
-      cursor:pointer;
-    }
-    .btn.secondary{
-      background:#fff;
-      color:#111827;
-      border:1px solid var(--line);
-    }
-    .btn.whatsapp{
-      background:#16a34a;
-      color:#fff;
-    }
-    .btn.paid{
-      background:#2563eb;
-      color:#fff;
-    }
-    .btn-group{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:14px;
-    }
-    input,select{
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:#fff;
-    }
-    table{
-      width:100%;
-      border-collapse:collapse;
-    }
-    th,td{
-      padding:12px;
-      border-bottom:1px solid #f1f5f9;
-      text-align:left;
-      font-size:14px;
-      vertical-align:middle;
-    }
-    th{
-      color:var(--muted);
-    }
-    .badge{
-      display:inline-block;
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:700;
-    }
-    .ativo{
-      background:#d1fae5;
-      color:#047857;
-    }
-    .teste{
-      background:#dbeafe;
-      color:#1d4ed8;
-    }
-    .vencido,.inativo{
-      background:#fee2e2;
-      color:#b91c1c;
-    }
-    .pago{
-      background:#e0e7ff;
-      color:#3730a3;
-    }
-    .small-card{
-      padding:14px;
-      border:1px solid var(--line);
-      border-radius:18px;
-      background:#fff;
-      margin-bottom:12px;
-    }
-    .muted{
-      color:var(--muted);
-    }
-    .actions{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-    }
-    .actions a, .actions button{
-      display:inline-block;
-      padding:8px 10px;
-      border-radius:10px;
-      border:1px solid var(--line);
-      text-decoration:none;
-      color:#111827;
-      background:#fff;
-      cursor:pointer;
-      font-size:13px;
-    }
-    .top{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:16px;
-      flex-wrap:wrap;
-      margin-bottom:20px;
-    }
-    .section-title{
-      font-size:28px;
-      font-weight:700;
-      margin:0;
-    }
-    .wrap{
-      overflow:auto;
-    }
-    .empty{
-      color:var(--muted);
-      padding:18px 0;
-    }
-    .notice{
-      font-size:12px;
-      color:var(--muted);
-      margin-top:8px;
-    }
-    @media(max-width:980px){
-      .layout{grid-template-columns:1fr}
-      .sidebar{display:none}
-      .row{grid-template-columns:1fr}
-    }
-  </style>
+<meta charset="UTF-8">
+<title>MS TV Admin</title>
+
+<style>
+body { font-family: Arial; margin:0; display:flex; }
+.sidebar { width:220px; background:#111; color:#fff; padding:20px;}
+.sidebar button { width:100%; margin:5px 0; padding:10px; cursor:pointer;}
+.main { flex:1; padding:20px;}
+
+.card { background:#f3f3f3; padding:15px; margin:10px 0; border-radius:10px;}
+.btn { padding:6px 10px; cursor:pointer; border:none; border-radius:6px;}
+.green { background:#2ecc71; color:#fff;}
+.blue { background:#3498db; color:#fff;}
+.red { background:#e74c3c; color:#fff;}
+</style>
 </head>
+
 <body>
-<div class="layout">
-  <aside class="sidebar">
-    <h1>MS TV Admin</h1>
-    <p>Painel de clientes, WhatsApp e financeiro</p>
-    <nav class="nav">
-      <a href="#" class="active">Dashboard</a>
-      <a href="#">Clientes</a>
-      <a href="#">Cobranças WhatsApp</a>
-      <a href="#">Financeiro</a>
-    </nav>
-  </aside>
 
-  <main class="main">
-    <div class="top">
-      <div>
-        <h2 class="section-title">Dashboard</h2>
-        <div class="muted">Versão conectada ao backend.</div>
-      </div>
-      <button class="btn" id="reloadBtn">Atualizar agora</button>
-    </div>
-
-    <section class="grid cards" id="stats"></section>
-
-    <section class="row">
-      <div class="card">
-        <div class="toolbar">
-          <div>
-            <h3 style="margin:0">Clientes</h3>
-            <div class="muted">Lista sincronizada do servidor</div>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <input id="search" placeholder="Buscar login" />
-            <select id="statusFilter">
-              <option value="">Todos</option>
-              <option value="ativo">Ativo</option>
-              <option value="teste">Teste</option>
-              <option value="vencido">Vencido</option>
-              <option value="inativo">Inativo</option>
-              <option value="pago">Marcados como pagos</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="btn-group">
-          <button class="btn whatsapp" onclick="cobrarPorDias(3)">Cobrar em 3 dias</button>
-          <button class="btn whatsapp" onclick="cobrarPorDias(2)">Cobrar em 2 dias</button>
-          <button class="btn whatsapp" onclick="cobrarPorDias(1)">Cobrar em 1 dia</button>
-          <button class="btn whatsapp" onclick="cobrarPorDias(0)">Cobrar hoje</button>
-        </div>
-
-        <div class="notice">
-          Clientes são ordenados por vencimento. Ao marcar como pago, vão para o final da lista até recarregar a página.
-        </div>
-
-        <div class="wrap" style="margin-top:16px">
-          <table>
-            <thead>
-              <tr>
-                <th>Login</th>
-                <th>Vencimento</th>
-                <th>Status</th>
-                <th>Conexões</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody id="clientsTable"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div>
-        <div class="card">
-          <h3 style="margin-top:0">Financeiro</h3>
-          <div class="muted">Estimativa automática</div>
-          <div id="financeBox" style="margin-top:14px"></div>
-        </div>
-
-        <div class="card" style="margin-top:20px">
-          <h3 style="margin-top:0">Vencendo em breve</h3>
-          <div class="muted">Próximos 3 dias</div>
-          <div id="expiringBox" style="margin-top:14px"></div>
-        </div>
-      </div>
-    </section>
-  </main>
+<div class="sidebar">
+  <h2>MS TV</h2>
+  <button onclick="screen='dashboard';render()">Dashboard</button>
+  <button onclick="screen='clientes';render()">Clientes</button>
+  <button onclick="screen='cobrancas';render()">Cobranças</button>
+  <button onclick="screen='financeiro';render()">Financeiro</button>
+  <button onclick="screen='promocao';render()">Promoção</button>
+  <button onclick="screen='sorteio';render()">Sorteio</button>
 </div>
 
+<div class="main" id="app"></div>
+
 <script>
-  const API = window.location.origin;
-  const WHATSAPP_PHONE = "62991133110";
+let screen = "dashboard";
+let clientes = [];
+let pagos = [];
 
-  let allClients = [];
-  let paidClients = new Set();
+const API = "";
 
-  function badgeClass(status, marcadoPago = false) {
-    if (marcadoPago) return "pago";
-    if (status === "ativo") return "ativo";
-    if (status === "teste") return "teste";
-    return "vencido";
-  }
+// ================= FETCH =================
 
-  function statusLabel(status, marcadoPago = false) {
-    if (marcadoPago) return "Pago";
-    if (status === "ativo") return "Ativo";
-    if (status === "teste") return "Teste";
-    if (status === "vencido") return "Vencido";
-    return "Inativo";
-  }
+async function carregar() {
+  const res = await fetch(API + "/api/clients/sync");
+  const data = await res.json();
+  clientes = data.clients;
 
-  async function fetchJson(url) {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Falha ao carregar " + url);
-    return res.json();
-  }
+  const pagosRes = await fetch(API + "/api/clients/pagos");
+  pagos = await pagosRes.json();
 
-  function parseBrDateToDate(brDate) {
-    if (!brDate || typeof brDate !== "string" || !brDate.includes("/")) return null;
-    const [day, month, year] = brDate.split("/").map(Number);
-    if (!day || !month || !year) return null;
-    return new Date(year, month - 1, day, 12, 0, 0);
-  }
+  render();
+}
 
-  function diffInDays(targetDate, baseDate = new Date()) {
-    const oneDay = 1000 * 60 * 60 * 24;
-    const utcTarget = Date.UTC(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
-    const utcBase = Date.UTC(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
-    return Math.floor((utcTarget - utcBase) / oneDay);
-  }
+// ================= RENDER =================
 
-  function sortClients(clients) {
-    return [...clients].sort((a, b) => {
-      const aPaid = paidClients.has(a.id);
-      const bPaid = paidClients.has(b.id);
+function render() {
+  if (screen === "dashboard") renderDashboard();
+  if (screen === "clientes") renderClientes();
+  if (screen === "cobrancas") renderCobrancas();
+  if (screen === "financeiro") renderFinanceiro();
+  if (screen === "promocao") renderPromocao();
+  if (screen === "sorteio") renderSorteio();
+}
 
-      if (aPaid !== bPaid) return aPaid ? 1 : -1;
+// ================= DASHBOARD =================
 
-      const da = parseBrDateToDate(a.vencimento);
-      const db = parseBrDateToDate(b.vencimento);
+function renderDashboard() {
+  app.innerHTML = `
+    <h1>Dashboard</h1>
+    <div class="card">Clientes: ${clientes.length}</div>
+  `;
+}
 
-      if (!da && !db) return (a.login || "").localeCompare(b.login || "");
-      if (!da) return 1;
-      if (!db) return -1;
+// ================= CLIENTES =================
 
-      return da - db;
-    });
-  }
+function renderClientes() {
+  app.innerHTML = "<h2>Clientes</h2>";
 
-  function getClientsByDueDays(days) {
-    const today = new Date();
-    return allClients.filter((c) => {
-      if (paidClients.has(c.id)) return false;
-      if (c.status === "vencido") return false;
-      const due = parseBrDateToDate(c.vencimento);
-      if (!due) return false;
-      return diffInDays(due, today) === days;
-    });
-  }
+  clientes
+    .sort((a,b)=> new Date(a.vencimentoIso)-new Date(b.vencimentoIso))
+    .forEach(c => {
 
-  function getExpiringClients(maxDays = 3) {
-    const today = new Date();
-    return sortClients(allClients).filter((c) => {
-      if (paidClients.has(c.id)) return false;
-      if (c.status === "vencido") return false;
-      const due = parseBrDateToDate(c.vencimento);
-      if (!due) return false;
-      const diff = diffInDays(due, today);
-      return diff >= 0 && diff <= maxDays;
-    });
-  }
+      const pago = pagos.includes(c.id);
 
-  function buildWhatsappLink(client, customText = "") {
-    const phone = WHATSAPP_PHONE.replace(/\D/g, "");
-    const message = customText || `Olá, tudo bem? Sua lista ${client.login} vence em ${client.vencimento}.`;
-    return `https://wa.me/55${phone}?text=${encodeURIComponent(message)}`;
-  }
-
-  function cobrarPorDias(days) {
-    const clients = getClientsByDueDays(days);
-
-    if (!clients.length) {
-      alert(`Nenhum cliente encontrado para vencimento em ${days} dia(s).`);
-      return;
-    }
-
-    clients.forEach((client, index) => {
-      const text = `Olá, tudo bem? Sua lista ${client.login} vence ${days === 0 ? "hoje" : `em ${days} dia(s)`}, na data ${client.vencimento}. Caso deseje, posso te passar o PIX para renovação.`;
-      const url = buildWhatsappLink(client, text);
-
-      setTimeout(() => {
-        window.open(url, "_blank");
-      }, index * 350);
-    });
-  }
-
-  function marcarComoPago(id) {
-    if (paidClients.has(id)) {
-      paidClients.delete(id);
-    } else {
-      paidClients.add(id);
-    }
-    applyFilters();
-  }
-
-  function renderStats(data) {
-    const stats = [
-      ["Clientes", data.totalClientes || 0],
-      ["Ativos", data.ativos || 0],
-      ["Vencidos", data.vencidos || 0],
-      ["Testes", data.testes || 0],
-      ["Online", data.online || 0],
-    ];
-
-    document.getElementById("stats").innerHTML = stats.map(([label, value]) => `
-      <div class="card">
-        <div class="label">${label}</div>
-        <div class="value">${value}</div>
-      </div>
-    `).join("");
-  }
-
-  function renderClients(clients) {
-    const tbody = document.getElementById("clientsTable");
-
-    if (!clients.length) {
-      tbody.innerHTML = `<tr><td colspan="5" class="empty">Nenhum cliente encontrado.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = clients.map((c) => {
-      const marcadoPago = paidClients.has(c.id);
-      const link = buildWhatsappLink(c);
-      return `
-        <tr>
-          <td>${c.login}</td>
-          <td>${c.vencimento || "-"}</td>
-          <td><span class="badge ${badgeClass(c.status, marcadoPago)}">${statusLabel(c.status, marcadoPago)}</span></td>
-          <td>${Number(c.conexoesAtuais || 0)}/${Number(c.maxConexoes || 0)}</td>
-          <td>
-            <div class="actions">
-              <a target="_blank" href="${link}">WhatsApp</a>
-              <button class="btn paid" onclick="marcarComoPago('${c.id}')">
-                ${marcadoPago ? "Desfazer pago" : "Marcar pago"}
-              </button>
-            </div>
-          </td>
-        </tr>
+      app.innerHTML += `
+        <div class="card">
+          ${c.login} - ${c.vencimento}
+          ${pago ? "(Pago)" : ""}
+          <button class="btn blue" onclick="pagar('${c.id}')">Pagar</button>
+        </div>
       `;
-    }).join("");
-  }
+    });
+}
 
-  function renderFinance(data) {
-    const mensalidadeBase = Number(data.mensalidadeBase || 30);
-    const clientesPagantes = allClients.filter(c => !c.teste).length;
-    const receitaPrevista = clientesPagantes * mensalidadeBase;
+async function pagar(id) {
+  await fetch(API + "/api/clients/pagar/" + id, {method:"POST"});
+  carregar();
+}
 
-    const ativosPagantes = allClients.filter((c) => c.status === "ativo" && !c.teste && !paidClients.has(c.id)).length;
-    const vencidosPagantes = allClients.filter((c) => c.status === "vencido" && !c.teste && !paidClients.has(c.id)).length;
+// ================= COBRANÇAS =================
 
-    const receitaAtiva = ativosPagantes * mensalidadeBase;
-    const receitaEmRisco = vencidosPagantes * mensalidadeBase;
+function renderCobrancas() {
+  app.innerHTML = "<h2>Cobranças</h2>";
 
-    document.getElementById("financeBox").innerHTML = [
-      ["Mensalidade base", "R$ " + mensalidadeBase.toFixed(2).replace(".", ",")],
-      ["Clientes pagantes", clientesPagantes],
-      ["Receita prevista", "R$ " + receitaPrevista.toFixed(2).replace(".", ",")],
-      ["Receita ativa", "R$ " + receitaAtiva.toFixed(2).replace(".", ",")],
-      ["Receita em risco", "R$ " + receitaEmRisco.toFixed(2).replace(".", ",")],
-    ].map(([k, v]) => `
-      <div class="small-card">
-        <strong>${k}</strong>
-        <div>${v}</div>
+  clientes.forEach(c => {
+    app.innerHTML += `
+      <div class="card">
+        ${c.login} - ${c.vencimento}
+        <button class="btn green" onclick="whats('${c.login}')">WhatsApp</button>
       </div>
-    `).join("");
-  }
+    `;
+  });
+}
 
-  function renderExpiring(clients) {
-    const box = document.getElementById("expiringBox");
+function whats(login) {
+  const msg = encodeURIComponent(
+    `Olá ${login}, sua mensalidade está próxima do vencimento.`
+  );
 
-    if (!clients.length) {
-      box.innerHTML = `<div class="small-card">Nenhum cliente nos próximos 3 dias.</div>`;
-      return;
-    }
+  window.open(`https://wa.me/5562991133110?text=${msg}`);
+}
 
-    box.innerHTML = clients.map((c) => `
-      <div class="small-card">
-        <strong>${c.login}</strong>
-        <div class="muted">Vence: ${c.vencimento || "-"} • ${statusLabel(c.status, paidClients.has(c.id)).toLowerCase()}</div>
-      </div>
-    `).join("");
-  }
+// ================= FINANCEIRO =================
 
-  function applyFilters() {
-    const q = document.getElementById("search").value.trim().toLowerCase();
-    const status = document.getElementById("statusFilter").value;
+function renderFinanceiro() {
+  const total = pagos.length * 30;
 
-    let filtered = sortClients(allClients);
+  app.innerHTML = `
+    <h2>Financeiro</h2>
+    <div class="card">Total recebido: R$ ${total}</div>
+  `;
+}
 
-    if (q) {
-      filtered = filtered.filter((c) => (c.login || "").toLowerCase().includes(q));
-    }
+// ================= PROMOÇÃO =================
 
-    if (status === "pago") {
-      filtered = filtered.filter((c) => paidClients.has(c.id));
-    } else if (status) {
-      filtered = filtered.filter((c) => !paidClients.has(c.id) && c.status === status);
-    }
+function renderPromocao() {
+  app.innerHTML = `
+    <h2>Promoção</h2>
+    <textarea id="msg" style="width:100%;height:100px;"></textarea>
+    <br><br>
+    <button class="btn green" onclick="enviarPromo()">Enviar</button>
+  `;
+}
 
-    renderClients(filtered);
-    renderFinance({ mensalidadeBase: 30 });
-    renderExpiring(getExpiringClients(3));
-  }
+function enviarPromo() {
+  const msg = document.getElementById("msg").value;
 
-  async function load() {
-    try {
-      const data = await fetchJson(API + "/api/clients/sync");
-      allClients = Array.isArray(data.clients) ? data.clients : [];
+  clientes.forEach(c => {
+    const texto = encodeURIComponent(msg.replace("{login}", c.login));
+    window.open(`https://wa.me/5562991133110?text=${texto}`);
+  });
+}
 
-      const totalClientes = allClients.length;
-      const ativos = allClients.filter((c) => c.status === "ativo").length;
-      const vencidos = allClients.filter((c) => c.status === "vencido").length;
-      const testes = allClients.filter((c) => c.status === "teste").length;
+// ================= SORTEIO =================
 
-      renderStats({
-        totalClientes,
-        ativos,
-        vencidos,
-        testes,
-        online: 0
-      });
+function renderSorteio() {
+  app.innerHTML = `
+    <h2>Sorteio</h2>
+    <button class="btn green" onclick="sortear()">Sortear</button>
+    <div id="resultado"></div>
+  `;
+}
 
-      applyFilters();
-    } catch (e) {
-      alert("Erro ao carregar painel: " + e.message);
-      console.error(e);
-    }
-  }
+function sortear() {
+  const lista = clientes.filter(c => pagos.includes(c.id));
+  const sorteado = lista[Math.floor(Math.random()*lista.length)];
 
-  document.getElementById("reloadBtn").addEventListener("click", load);
-  document.getElementById("search").addEventListener("input", applyFilters);
-  document.getElementById("statusFilter").addEventListener("change", applyFilters);
+  document.getElementById("resultado").innerHTML =
+    "Ganhador: " + (sorteado ? sorteado.login : "Ninguém");
+}
 
-  load();
+// ================= INIT =================
+
+carregar();
 </script>
+
 </body>
 </html>
