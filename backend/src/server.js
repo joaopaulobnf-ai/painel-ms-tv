@@ -1,17 +1,8 @@
-import express from "express";
-import cors from "cors";
-import clientsRoutes from "./routes/clients.routes.js";
-import { loadStore } from "./store.js";
+import app from "./app.js";
 
-const app = express();
+const PORT = Number(process.env.PORT) || 10000;
+const HOST = "0.0.0.0";
 
-app.use(cors());
-app.use(express.json());
-
-loadStore();
-
-app.use("/api", clientsRoutes);
-
-app.listen(process.env.PORT || 10000, () => {
-  console.log("Servidor rodando");
+app.listen(PORT, HOST, () => {
+  console.log(`Servidor rodando em http://${HOST}:${PORT}`);
 });
