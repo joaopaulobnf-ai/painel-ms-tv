@@ -579,6 +579,87 @@
       font-weight:700;
     }
 
+    .login-screen{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      background:linear-gradient(135deg,#071226 0%,#0f172a 50%,#1e293b 100%);
+    }
+
+    .login-card{
+      width:100%;
+      max-width:430px;
+      background:rgba(255,255,255,.98);
+      border-radius:28px;
+      padding:28px;
+      box-shadow:0 20px 60px rgba(0,0,0,.28);
+    }
+
+    .login-avatar{
+      width:120px;
+      height:120px;
+      border-radius:50%;
+      overflow:hidden;
+      margin:0 auto 18px;
+      box-shadow:0 10px 24px rgba(0,0,0,.16);
+    }
+
+    .login-avatar img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    .login-card h1{
+      margin:0;
+      text-align:center;
+      font-size:34px;
+      color:#0f172a;
+    }
+
+    .login-card p{
+      text-align:center;
+      color:#64748b;
+      margin:10px 0 20px;
+      line-height:1.5;
+    }
+
+    .login-form{
+      display:grid;
+      gap:12px;
+    }
+
+    .login-error{
+      margin-top:12px;
+      padding:12px 14px;
+      border-radius:14px;
+      background:#fee2e2;
+      color:#b91c1c;
+      font-weight:700;
+      display:none;
+    }
+
+    .top-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .welcome-user{
+      color:#475569;
+      font-weight:700;
+      font-size:14px;
+      padding:10px 12px;
+      background:#fff;
+      border:1px solid #e2e8f0;
+      border-radius:14px;
+      box-shadow:var(--shadow-soft);
+    }
+
     @media (max-width: 980px){
       .layout{flex-direction:column}
       .sidebar{
@@ -592,38 +673,7 @@
   </style>
 </head>
 <body>
-  <div class="layout">
-    <aside class="sidebar">
-      <div class="avatar-box">
-        <div class="avatar-frame">
-          <img src="/avatar-ms-tv.png" alt="Avatar MS TV">
-        </div>
-      </div>
-
-      <div class="brand">
-        <h1>MS TV</h1>
-        <p>Painel de clientes, cobranças, promoções e sorteio mensal.</p>
-      </div>
-
-      <div class="menu-title">Principal</div>
-
-      <button class="nav-btn active" onclick="changeScreen('dashboard', this)">📊 Dashboard</button>
-      <button class="nav-btn" onclick="changeScreen('clientes', this)">👥 Clientes</button>
-      <button class="nav-btn" onclick="changeScreen('cobrancas', this)">💬 Cobranças WhatsApp</button>
-      <button class="nav-btn" onclick="changeScreen('financeiro', this)">💰 Financeiro</button>
-      <button class="nav-btn" onclick="changeScreen('promocao', this)">🎁 Promoção do dia</button>
-      <button class="nav-btn" onclick="changeScreen('sorteio', this)">🎉 Sorteio do mês</button>
-
-      <div class="sidebar-footer">
-        WhatsApp oficial da MS TV:<br>
-        <strong>(62) 9 9113-3110</strong>
-      </div>
-    </aside>
-
-    <main class="main">
-      <div id="app"></div>
-    </main>
-  </div>
+  <div id="root"></div>
 
   <script>
     const API = window.location.origin;
@@ -636,17 +686,36 @@
     let filtroBusca = "";
     let filtroStatus = "";
     let editandoContato = {};
+    let currentUser = null;
 
-    function changeScreen(nextScreen, button) {
-      screen = nextScreen;
-      document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
-      if (button) button.classList.add("active");
-      render();
+    function authHeaders() {
+      const token = localStorage.getItem("ms_tv_token");
+      return token ? { Authorization: `Bearer ${token}` } : {};
     }
 
     async function fetchJson(url, options = {}) {
-      const res = await fetch(url, options);
-      if (!res.ok) throw new Error("Falha ao carregar " + url);
+      const merged = {
+        ...options,
+        headers: {
+          ...(options.headers || {}),
+          ...authHeaders()
+        }
+      };
+
+      const res = await fetch(url, merged);
+
+      if (res.status === 401) {
+        localStorage.removeItem("ms_tv_token");
+        currentUser = null;
+        renderLogin();
+        throw new Error("Sessão expirada");
+      }
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Falha na requisição");
+      }
+
       return res.json();
     }
 
@@ -660,9 +729,7 @@
       }
 
       const brMatch = String(value).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      if (brMatch) {
-        return value;
-      }
+      if (brMatch) return value;
 
       const parsed = new Date(value);
       if (!Number.isNaN(parsed.getTime())) {
@@ -762,6 +829,127 @@
       return clientes.filter(c => isPago(c.id) && c.status !== "vencido");
     }
 
+    async function checkSession() {
+      const token = localStorage.getItem("ms_tv_token");
+      if (!token) {
+        renderLogin();
+        return;
+      }
+
+      try {
+        const data = await fetchJson(API + "/api/auth/me");
+        currentUser = data.username;
+        renderAppShell();
+        await carregar(true);
+      } catch {
+        renderLogin();
+      }
+    }
+
+    async function login(event) {
+      event.preventDefault();
+
+      const username = document.getElementById("loginUser").value.trim();
+      const password = document.getElementById("loginPass").value.trim();
+      const errorBox = document.getElementById("loginError");
+
+      try {
+        const data = await fetchJson(API + "/api/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ username, password })
+        });
+
+        localStorage.setItem("ms_tv_token", data.token);
+        currentUser = data.username;
+        renderAppShell();
+        await carregar(true);
+      } catch {
+        errorBox.style.display = "block";
+        errorBox.textContent = "Usuário ou senha inválidos.";
+      }
+    }
+
+    async function logout() {
+      try {
+        await fetchJson(API + "/api/auth/logout", {
+          method: "POST"
+        });
+      } catch {}
+
+      localStorage.removeItem("ms_tv_token");
+      currentUser = null;
+      renderLogin();
+    }
+
+    function renderLogin() {
+      document.getElementById("root").innerHTML = `
+        <div class="login-screen">
+          <div class="login-card">
+            <div class="login-avatar">
+              <img src="/avatar-ms-tv.png" alt="MS TV">
+            </div>
+            <h1>MS TV</h1>
+            <p>Acesse o painel administrativo com seu usuário e senha.</p>
+
+            <form class="login-form" onsubmit="login(event)">
+              <input id="loginUser" placeholder="Usuário" autocomplete="username">
+              <input id="loginPass" type="password" placeholder="Senha" autocomplete="current-password">
+              <button class="btn btn-dark" type="submit">Entrar no painel</button>
+            </form>
+
+            <div id="loginError" class="login-error"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAppShell() {
+      document.getElementById("root").innerHTML = `
+        <div class="layout">
+          <aside class="sidebar">
+            <div class="avatar-box">
+              <div class="avatar-frame">
+                <img src="/avatar-ms-tv.png" alt="Avatar MS TV">
+              </div>
+            </div>
+
+            <div class="brand">
+              <h1>MS TV</h1>
+              <p>Painel de clientes, cobranças, promoções e sorteio mensal.</p>
+            </div>
+
+            <div class="menu-title">Principal</div>
+
+            <button class="nav-btn ${screen === "dashboard" ? "active" : ""}" onclick="changeScreen('dashboard', this)">📊 Dashboard</button>
+            <button class="nav-btn ${screen === "clientes" ? "active" : ""}" onclick="changeScreen('clientes', this)">👥 Clientes</button>
+            <button class="nav-btn ${screen === "cobrancas" ? "active" : ""}" onclick="changeScreen('cobrancas', this)">💬 Cobranças WhatsApp</button>
+            <button class="nav-btn ${screen === "financeiro" ? "active" : ""}" onclick="changeScreen('financeiro', this)">💰 Financeiro</button>
+            <button class="nav-btn ${screen === "promocao" ? "active" : ""}" onclick="changeScreen('promocao', this)">🎁 Promoção do dia</button>
+            <button class="nav-btn ${screen === "sorteio" ? "active" : ""}" onclick="changeScreen('sorteio', this)">🎉 Sorteio do mês</button>
+
+            <div class="sidebar-footer">
+              WhatsApp oficial da MS TV:<br>
+              <strong>(62) 9 9113-3110</strong>
+            </div>
+          </aside>
+
+          <main class="main">
+            <div id="app"></div>
+          </main>
+        </div>
+      `;
+    }
+
+    function changeScreen(nextScreen, button) {
+      screen = nextScreen;
+      document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
+      if (button) button.classList.add("active");
+      render();
+    }
+
     async function carregar(forceSync = true) {
       try {
         const rota = forceSync ? "/api/clients/sync" : "/api/clients";
@@ -780,8 +968,14 @@
         render();
       } catch (error) {
         console.error("Erro ao carregar clientes:", error);
-        clientes = [];
-        render();
+        if (document.getElementById("app")) {
+          document.getElementById("app").innerHTML = `
+            <div class="card">
+              <h3>Erro ao carregar painel</h3>
+              <p class="muted">Verifique as credenciais do IPTV ou tente novamente.</p>
+            </div>
+          `;
+        }
       }
     }
 
@@ -790,7 +984,7 @@
         await fetchJson(API + "/api/clients/pagar/" + id, { method: "POST" });
         if (!pagos.includes(id)) pagos.push(id);
         render();
-      } catch (error) {
+      } catch {
         alert("Erro ao marcar como pago.");
       }
     }
@@ -800,7 +994,7 @@
         await fetchJson(API + "/api/clients/desmarcar-pago/" + id, { method: "POST" });
         pagos = pagos.filter(item => item !== id);
         render();
-      } catch (error) {
+      } catch {
         alert("Erro ao desmarcar pagamento.");
       }
     }
@@ -836,9 +1030,8 @@
         contatos[id] = telefone.replace(/\D/g, "");
         delete editandoContato[id];
         renderClientes();
-      } catch (error) {
+      } catch {
         alert("Erro ao salvar contato.");
-        console.error(error);
       }
     }
 
@@ -991,13 +1184,17 @@ Equipe MS TV`;
       const em1 = clientesPorDias(1).length;
       const hoje = clientesPorDias(0).length;
 
-      app.innerHTML = `
+      document.getElementById("app").innerHTML = `
         <div class="topbar">
           <div>
             <h2>Dashboard</h2>
             <p>Resumo geral do painel MS TV.</p>
           </div>
-          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+          <div class="top-actions">
+            <div class="welcome-user">Usuário: ${currentUser || "admin"}</div>
+            <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+            <button class="btn btn-red" onclick="logout()">Sair</button>
+          </div>
         </div>
 
         <section class="grid cards">
@@ -1032,13 +1229,17 @@ Equipe MS TV`;
     function renderClientes() {
       const lista = clientesFiltrados();
 
-      app.innerHTML = `
+      document.getElementById("app").innerHTML = `
         <div class="topbar">
           <div>
             <h2>Clientes</h2>
             <p>Lista completa, ordenada por vencimento.</p>
           </div>
-          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+          <div class="top-actions">
+            <div class="welcome-user">Usuário: ${currentUser || "admin"}</div>
+            <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+            <button class="btn btn-red" onclick="logout()">Sair</button>
+          </div>
         </div>
 
         <div class="card">
@@ -1182,13 +1383,17 @@ Equipe MS TV`;
         `;
       }
 
-      app.innerHTML = `
+      document.getElementById("app").innerHTML = `
         <div class="topbar">
           <div>
             <h2>Cobranças WhatsApp</h2>
             <p>Blocos separados por vencimento com mensagens profissionais.</p>
           </div>
-          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+          <div class="top-actions">
+            <div class="welcome-user">Usuário: ${currentUser || "admin"}</div>
+            <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+            <button class="btn btn-red" onclick="logout()">Sair</button>
+          </div>
         </div>
 
         <div class="charge-grid">
@@ -1207,13 +1412,17 @@ Equipe MS TV`;
       const clientesEmRisco = clientes.filter(c => !isPago(c.id) && c.status === "vencido").length;
       const receitaRisco = clientesEmRisco * VALOR_MENSAL;
 
-      app.innerHTML = `
+      document.getElementById("app").innerHTML = `
         <div class="topbar">
           <div>
             <h2>Financeiro</h2>
             <p>Alimentado sempre que um cliente é marcado como pago.</p>
           </div>
-          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+          <div class="top-actions">
+            <div class="welcome-user">Usuário: ${currentUser || "admin"}</div>
+            <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+            <button class="btn btn-red" onclick="logout()">Sair</button>
+          </div>
         </div>
 
         <div class="grid cards">
@@ -1226,13 +1435,17 @@ Equipe MS TV`;
     }
 
     function renderPromocao() {
-      app.innerHTML = `
+      document.getElementById("app").innerHTML = `
         <div class="topbar">
           <div>
             <h2>Promoção do dia</h2>
             <p>Escreva a mensagem e envie para os clientes com WhatsApp cadastrado.</p>
           </div>
-          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+          <div class="top-actions">
+            <div class="welcome-user">Usuário: ${currentUser || "admin"}</div>
+            <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+            <button class="btn btn-red" onclick="logout()">Sair</button>
+          </div>
         </div>
 
         <div class="promo-box">
@@ -1246,13 +1459,17 @@ Equipe MS TV`;
     function renderSorteio() {
       const elegiveis = clientesEmDiaParaSorteio();
 
-      app.innerHTML = `
+      document.getElementById("app").innerHTML = `
         <div class="topbar">
           <div>
             <h2>Sorteio do mês</h2>
             <p>Participam clientes marcados como pagos antes ou até o vencimento.</p>
           </div>
-          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+          <div class="top-actions">
+            <div class="welcome-user">Usuário: ${currentUser || "admin"}</div>
+            <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+            <button class="btn btn-red" onclick="logout()">Sair</button>
+          </div>
         </div>
 
         <div class="raffle-box">
@@ -1272,7 +1489,7 @@ Equipe MS TV`;
       if (screen === "sorteio") return renderSorteio();
     }
 
-    carregar(true);
+    checkSession();
   </script>
 </body>
 </html>
