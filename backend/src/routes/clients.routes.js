@@ -19,7 +19,7 @@ function formatDateBR(dateObj) {
   return `${dd}/${mm}/${yyyy}`;
 }
 
-function toUtcMidday(dateObj) {
+function normalizeToUtcMidday(dateObj) {
   if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) return null;
   return new Date(Date.UTC(
     dateObj.getUTCFullYear(),
@@ -35,32 +35,27 @@ function parsePossibleDate(value) {
   if (typeof value === "number" || /^\d+$/.test(String(value))) {
     const num = Number(value);
     if (!Number.isNaN(num) && num > 0) {
-      // timestamp em segundos
       if (String(num).length <= 10) {
         return new Date(num * 1000);
       }
-      // timestamp em ms
       return new Date(num);
     }
   }
 
   const str = String(value).trim();
 
-  // já no formato dd/mm/aaaa
   let match = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (match) {
     const [, dd, mm, yyyy] = match;
     return new Date(Date.UTC(Number(yyyy), Number(mm) - 1, Number(dd), 12, 0, 0));
   }
 
-  // formato yyyy-mm-dd
   match = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (match) {
     const [, yyyy, mm, dd] = match;
     return new Date(Date.UTC(Number(yyyy), Number(mm) - 1, Number(dd), 12, 0, 0));
   }
 
-  // fallback
   const parsed = new Date(str);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
@@ -69,15 +64,15 @@ function normalizeClientDate(item) {
   const candidates = [
     item.exp_date,
     item.expiration,
-    item.vencimentoIso,
-    item.vencimento,
     item.expiration_date,
-    item.expire_date
+    item.expire_date,
+    item.vencimentoIso,
+    item.vencimento
   ];
 
   for (const candidate of candidates) {
     const parsed = parsePossibleDate(candidate);
-    if (parsed) return toUtcMidday(parsed);
+    if (parsed) return normalizeToUtcMidday(parsed);
   }
 
   return null;
