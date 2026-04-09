@@ -3,5 +3,5 @@ export const store = {
   pagos: new Set(),
   historico: [],
   telefoneMsTv: "62991133110",
-  contatos: {}, // { clienteId: "6299..." }
+  contatos: {}
 };
