@@ -1139,3 +1139,126 @@ Equipe MS TV 💙`;
           </div>
         </div>
       `;
+          function renderCobrancas() {
+      const lista3 = clientesPorDias(3);
+      const lista2 = clientesPorDias(2);
+      const lista1 = clientesPorDias(1);
+      const listaHoje = clientesPorDias(0);
+      const listaVencidos = clientesVencidos();
+
+      function bloco(titulo, descricao, lista, tipoTexto) {
+        return `
+          <div class="charge-card">
+            <h3>${titulo}</h3>
+            <p>${descricao}</p>
+            <button class="btn btn-green" onclick="cobrarLista(${JSON.stringify(lista).replace(/"/g, '&quot;')}, '${tipoTexto}')">Enviar cobrança</button>
+            <div class="charge-list">
+              ${
+                lista.length
+                  ? lista.map(c => `
+                    <div class="charge-item">
+                      <strong>${c.login}</strong>
+                      <span class="muted">Vencimento: ${formatDateDisplay(c.vencimento)}</span>
+                    </div>
+                  `).join("")
+                  : `<div class="empty">Nenhum cliente nesta faixa.</div>`
+              }
+            </div>
+          </div>
+        `;
+      }
+
+      app.innerHTML = `
+        <div class="topbar">
+          <div>
+            <h2>Cobranças WhatsApp</h2>
+            <p>Blocos separados por vencimento com mensagens profissionais.</p>
+          </div>
+          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+        </div>
+
+        <div class="charge-grid">
+          ${bloco("Vence em 3 dias", "Cobrança preventiva", lista3, "3")}
+          ${bloco("Vence em 2 dias", "Lembrete antecipado", lista2, "2")}
+          ${bloco("Vence em 1 dia", "Lembrete de vencimento", lista1, "1")}
+          ${bloco("Vence hoje", "Cobrança do dia", listaHoje, "0")}
+          ${bloco("Vencidos", "Clientes em atraso", listaVencidos, "v")}
+        </div>
+      `;
+    }
+
+    function renderFinanceiro() {
+      const receitaBruta = pagos.length * VALOR_MENSAL;
+      const clientesPagos = pagos.length;
+      const clientesEmRisco = clientes.filter(c => !isPago(c.id) && c.status === "vencido").length;
+      const receitaRisco = clientesEmRisco * VALOR_MENSAL;
+
+      app.innerHTML = `
+        <div class="topbar">
+          <div>
+            <h2>Financeiro</h2>
+            <p>Alimentado sempre que um cliente é marcado como pago.</p>
+          </div>
+          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+        </div>
+
+        <div class="grid cards">
+          <div class="card"><div class="card-title">Mensalidade base</div><div class="card-value">R$ ${VALOR_MENSAL.toFixed(2).replace(".", ",")}</div></div>
+          <div class="card"><div class="card-title">Clientes pagos no mês</div><div class="card-value">${clientesPagos}</div></div>
+          <div class="card"><div class="card-title">Receita total bruta</div><div class="card-value">R$ ${receitaBruta.toFixed(2).replace(".", ",")}</div></div>
+          <div class="card"><div class="card-title">Receita em risco</div><div class="card-value">R$ ${receitaRisco.toFixed(2).replace(".", ",")}</div></div>
+        </div>
+      `;
+    }
+
+    function renderPromocao() {
+      app.innerHTML = `
+        <div class="topbar">
+          <div>
+            <h2>Promoção do dia</h2>
+            <p>Escreva a mensagem e envie para os clientes com WhatsApp cadastrado.</p>
+          </div>
+          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+        </div>
+
+        <div class="promo-box">
+          <textarea id="promoMsg" placeholder="Ex: Hoje a MS TV está com condição especial de renovação..."></textarea>
+          <br><br>
+          <button class="btn btn-green" onclick="enviarPromocaoMassa()">Enviar para todos os clientes com número</button>
+        </div>
+      `;
+    }
+
+    function renderSorteio() {
+      const elegiveis = clientesEmDiaParaSorteio();
+
+      app.innerHTML = `
+        <div class="topbar">
+          <div>
+            <h2>Sorteio do mês</h2>
+            <p>Participam clientes marcados como pagos antes ou até o vencimento.</p>
+          </div>
+          <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+        </div>
+
+        <div class="raffle-box">
+          <div class="small-card"><strong>Clientes elegíveis:</strong> ${elegiveis.length}</div>
+          <button class="btn btn-green" onclick="sortearCliente()">Rodar sorteio</button>
+          <div id="raffleResult" class="result-box">Clique no botão para realizar o sorteio.</div>
+        </div>
+      `;
+    }
+
+    function render() {
+      if (screen === "dashboard") return renderDashboard();
+      if (screen === "clientes") return renderClientes();
+      if (screen === "cobrancas") return renderCobrancas();
+      if (screen === "financeiro") return renderFinanceiro();
+      if (screen === "promocao") return renderPromocao();
+      if (screen === "sorteio") return renderSorteio();
+    }
+
+    carregar(true);
+  </script>
+</body>
+</html>
