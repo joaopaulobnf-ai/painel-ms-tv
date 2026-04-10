@@ -162,6 +162,10 @@
       return renovados.includes(id);
     }
 
+    function clientesVisiveisClientesCobrancas() {
+      return clientes.filter(c => !isRenovado(c.id));
+    }
+
     function statusLabel(cliente) {
       if (isPago(cliente.id)) return "Pago";
       if (isRenovado(cliente.id)) return "Renovado";
@@ -181,14 +185,6 @@
 
     function sortClientes(lista) {
       return [...lista].sort((a, b) => {
-        const aPago = isPago(a.id);
-        const bPago = isPago(b.id);
-        if (aPago !== bPago) return aPago ? 1 : -1;
-
-        const aRenovado = isRenovado(a.id);
-        const bRenovado = isRenovado(b.id);
-        if (aRenovado !== bRenovado) return aRenovado ? 1 : -1;
-
         const da = parseBrDate(a.vencimento);
         const db = parseBrDate(b.vencimento);
 
@@ -200,7 +196,7 @@
     }
 
     function clientesFiltrados() {
-      let lista = sortClientes(clientes);
+      let lista = sortClientes(clientesVisiveisClientesCobrancas());
 
       if (filtroBusca.trim()) {
         const q = filtroBusca.trim().toLowerCase();
@@ -209,21 +205,19 @@
 
       if (filtroStatus === "pago") {
         lista = lista.filter(c => isPago(c.id));
-      } else if (filtroStatus === "renovado") {
-        lista = lista.filter(c => isRenovado(c.id));
       } else if (filtroStatus) {
-        lista = lista.filter(c => !isPago(c.id) && !isRenovado(c.id) && c.status === filtroStatus);
+        lista = lista.filter(c => !isPago(c.id) && c.status === filtroStatus);
       }
 
       return lista;
     }
 
     function clientesPorDias(days) {
-      return sortClientes(clientes).filter(c => !isPago(c.id) && !isRenovado(c.id) && diffDays(c.vencimento) === days);
+      return sortClientes(clientesVisiveisClientesCobrancas()).filter(c => !isPago(c.id) && diffDays(c.vencimento) === days);
     }
 
     function clientesVencidos() {
-      return sortClientes(clientes).filter(c => !isPago(c.id) && !isRenovado(c.id) && c.status === "vencido");
+      return sortClientes(clientesVisiveisClientesCobrancas()).filter(c => !isPago(c.id) && c.status === "vencido");
     }
 
     function clientesElegiveisSorteio() {
@@ -443,17 +437,6 @@
       } catch (error) {
         console.error(error);
         alert("Erro ao marcar como renovado.");
-      }
-    }
-
-    async function desmarcarRenovado(id) {
-      try {
-        await fetchJson(API + "/api/clients/desmarcar-renovado/" + encodeURIComponent(id), { method: "POST" });
-        renovados = renovados.filter(item => item !== id);
-        render();
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao desmarcar renovado.");
       }
     }
 
@@ -720,7 +703,6 @@ Equipe MS TV`;
       const vencidos = clientes.filter(c => c.status === "vencido").length;
       const testes = clientes.filter(c => c.status === "teste").length;
       const receitaBruta = pagos.length * VALOR_MENSAL;
-      const renovadosTotal = renovados.length;
 
       document.getElementById("app").innerHTML = `
         <div class="topbar">
@@ -740,7 +722,6 @@ Equipe MS TV`;
           <div class="card"><div class="card-title">Ativos</div><div class="card-value">${ativos}</div></div>
           <div class="card"><div class="card-title">Vencidos</div><div class="card-value">${vencidos}</div></div>
           <div class="card"><div class="card-title">Testes</div><div class="card-value">${testes}</div></div>
-          <div class="card"><div class="card-title">Renovados</div><div class="card-value">${renovadosTotal}</div></div>
           <div class="card"><div class="card-title">Receita bruta</div><div class="card-value">R$ ${receitaBruta.toFixed(2).replace(".", ",")}</div></div>
         </div>
       `;
@@ -765,8 +746,8 @@ Equipe MS TV`;
         <div class="card">
           <div class="toolbar">
             <div>
-              <h3 style="margin:0">Clientes importados manualmente</h3>
-              <p class="muted" style="margin:6px 0 0">Cadastre o WhatsApp para cobrança e promoções diretas.</p>
+              <h3 style="margin:0">Clientes visíveis no painel</h3>
+              <p class="muted" style="margin:6px 0 0">Clientes marcados como renovado somem apenas daqui e das cobranças.</p>
             </div>
 
             <div class="filters">
@@ -776,7 +757,6 @@ Equipe MS TV`;
                 <option value="ativo" ${filtroStatus === "ativo" ? "selected" : ""}>Ativo</option>
                 <option value="teste" ${filtroStatus === "teste" ? "selected" : ""}>Teste</option>
                 <option value="vencido" ${filtroStatus === "vencido" ? "selected" : ""}>Vencido</option>
-                <option value="renovado" ${filtroStatus === "renovado" ? "selected" : ""}>Renovado</option>
                 <option value="pago" ${filtroStatus === "pago" ? "selected" : ""}>Pago</option>
               </select>
             </div>
@@ -843,11 +823,7 @@ Equipe MS TV`;
                                   WhatsApp
                                 </a>
 
-                                ${
-                                  isRenovado(c.id)
-                                    ? `<button class="mini-btn mini-orange" onclick='desmarcarRenovado(${safeId})'>Renovado</button>`
-                                    : `<button class="mini-btn mini-outline" onclick='marcarRenovado(${safeId})'>Renovado</button>`
-                                }
+                                <button class="mini-btn mini-outline" onclick='marcarRenovado(${safeId})'>Renovado</button>
 
                                 ${
                                   isPago(c.id)
@@ -927,7 +903,8 @@ Equipe MS TV`;
 
     function renderFinanceiro() {
       const receitaBruta = pagos.length * VALOR_MENSAL;
-      const vencidos = clientes.filter(c => !isPago(c.id) && !isRenovado(c.id) && c.status === "vencido").length;
+      const vencidos = clientes.filter(c => !isPago(c.id) && c.status === "vencido").length;
+      const renovadosTotal = renovados.length;
 
       document.getElementById("app").innerHTML = `
         <div class="topbar">
@@ -945,7 +922,7 @@ Equipe MS TV`;
         <div class="cards">
           <div class="card"><div class="card-title">Mensalidade base</div><div class="card-value">R$ ${VALOR_MENSAL.toFixed(2).replace(".", ",")}</div></div>
           <div class="card"><div class="card-title">Clientes pagos</div><div class="card-value">${pagos.length}</div></div>
-          <div class="card"><div class="card-title">Clientes renovados</div><div class="card-value">${renovados.length}</div></div>
+          <div class="card"><div class="card-title">Clientes renovados</div><div class="card-value">${renovadosTotal}</div></div>
           <div class="card"><div class="card-title">Receita bruta</div><div class="card-value">R$ ${receitaBruta.toFixed(2).replace(".", ",")}</div></div>
           <div class="card"><div class="card-title">Clientes vencidos</div><div class="card-value">${vencidos}</div></div>
         </div>
@@ -1033,66 +1010,76 @@ Equipe MS TV`;
       `;
     }
 
-    async function renderListasHistorico() {
-      const listas = await carregarListasHistorico();
+    async function carregarListasHistorico() {
+      try {
+        const data = await fetchJson(API + "/api/clients/listas-historico");
+        return data.listas || [];
+      } catch (error) {
+        console.error(error);
+        return [];
+      }
+    }
 
-      document.getElementById("app").innerHTML = `
-        <div class="topbar">
-          <div>
-            <h2>Lista de clientes</h2>
-            <p>Histórico mensal das listas importadas manualmente.</p>
-          </div>
-          <div class="actions">
-            <div class="pill">Usuário: ${escapeHtml(currentUser || "admin")}</div>
-            <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
-            <button class="btn btn-red" onclick="logout()">Sair</button>
-          </div>
-        </div>
+    async function abrirResumoMes(mes) {
+      try {
+        const data = await fetchJson(API + "/api/clients/listas-historico/" + encodeURIComponent(mes));
+        const item = data.item;
 
-        <div class="card">
-          <h3 style="margin-top:0">Meses disponíveis</h3>
-          ${
-            listas.length
-              ? `
-                <div class="actions">
-                  ${listas.map(item => `
-                    <button class="btn btn-purple" onclick='abrirResumoMes(${JSON.stringify(item.mes)})'>${escapeHtml(item.label)}</button>
-                  `).join("")}
-                </div>
-                <div style="height:14px"></div>
-                <div class="table-wrap">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Mês</th>
-                        <th>Clientes</th>
-                        <th>Renovações</th>
-                        <th>Vencidos</th>
-                        <th>Testes</th>
-                        <th>Bruto</th>
-                        <th>Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      ${listas.map(item => `
+        document.getElementById("app").innerHTML = `
+          <div class="topbar">
+            <div>
+              <h2>Resumo do mês ${escapeHtml(item.label)}</h2>
+              <p>Dados da lista importada em ${new Date(item.dataImportacao).toLocaleString("pt-BR")}</p>
+            </div>
+            <div class="actions">
+              <div class="pill">Usuário: ${escapeHtml(currentUser || "admin")}</div>
+              <button class="btn btn-dark" onclick="renderListasHistorico()">Voltar</button>
+              <button class="btn btn-red" onclick="logout()">Sair</button>
+            </div>
+          </div>
+
+          <div class="cards">
+            <div class="card"><div class="card-title">Clientes</div><div class="card-value">${item.resumo.totalClientes}</div></div>
+            <div class="card"><div class="card-title">Renovações</div><div class="card-value">${item.resumo.renovacoes}</div></div>
+            <div class="card"><div class="card-title">Vencidos</div><div class="card-value">${item.resumo.vencidos}</div></div>
+            <div class="card"><div class="card-title">Testes</div><div class="card-value">${item.resumo.testesGerados}</div></div>
+            <div class="card"><div class="card-title">Dinheiro bruto</div><div class="card-value">R$ ${Number(item.resumo.dinheiroBruto || 0).toFixed(2).replace(".", ",")}</div></div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-top:0">Usuários da lista</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Usuário</th>
+                    <th>Vencimento</th>
+                    <th>Status</th>
+                    <th>Conexões</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${
+                    (item.clientes || []).length
+                      ? item.clientes.map(cliente => `
                         <tr>
-                          <td>${escapeHtml(item.label)}</td>
-                          <td>${item.resumo.totalClientes}</td>
-                          <td>${item.resumo.renovacoes}</td>
-                          <td>${item.resumo.vencidos}</td>
-                          <td>${item.resumo.testesGerados}</td>
-                          <td>R$ ${Number(item.resumo.dinheiroBruto || 0).toFixed(2).replace(".", ",")}</td>
-                          <td><button class="mini-btn mini-blue" onclick='abrirResumoMes(${JSON.stringify(item.mes)})'>Abrir resumo</button></td>
+                          <td>${escapeHtml(cliente.login)}</td>
+                          <td>${escapeHtml(cliente.vencimento || "-")}</td>
+                          <td>${escapeHtml(cliente.status || "-")}</td>
+                          <td>${Number(cliente.conexoesAtuais || 0)}/${Number(cliente.maxConexoes || 0)}</td>
                         </tr>
-                      `).join("")}
-                    </tbody>
-                  </table>
-                </div>
-              `
-              : `<div class="empty">Nenhuma lista mensal foi importada ainda.</div>`
-          }
-        </div>
-      `;
+                      `).join("")
+                      : `<tr><td colspan="4" class="empty">Nenhum cliente encontrado.</td></tr>`
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      } catch (error) {
+        console.error(error);
+        alert("Erro ao abrir resumo do mês.");
+      }
     }
 
     function render() {
