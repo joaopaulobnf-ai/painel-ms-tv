@@ -936,18 +936,18 @@ Equipe MS TV`;
                                       <div class="contact-view">
                                         <div class="saved-phone">${contatos[c.id]}</div>
                                         <div class="action-buttons">
-                                          <button class="mini-btn gray" onclick="abrirEdicaoContato('${c.id}')">Editar</button>
-                                          <button class="mini-btn red" onclick="removerContato('${c.id}')">Excluir</button>
+                                          <button class="mini-btn gray" onclick="abrirEdicaoContato(${JSON.stringify(c.id)})"
+                                          <button class="mini-btn red" onclick="removerContato(${JSON.stringify(c.id)})"
                                         </div>
                                       </div>
                                     `
                                     : `
                                       <div class="contact-row">
                                         <input id="fone_${c.id}" class="input-whatsapp" placeholder="Ex: 62999999999" value="${contatos[c.id] || ""}">
-                                        <button class="mini-btn green" onclick="salvarContato('${c.id}')">Salvar</button>
+                                        <button class="mini-btn green" onclick="salvarContato(${JSON.stringify(c.id)})"
                                         ${
                                           contatos[c.id]
-                                            ? `<button class="mini-btn outline" onclick="cancelarEdicaoContato('${c.id}')">Cancelar</button>`
+                                            ? `<button class="mini-btn outline" onclick="cancelarEdicaoContato(${JSON.stringify(c.id)})"
                                             : ""
                                         }
                                       </div>
@@ -967,8 +967,8 @@ Equipe MS TV`;
 
                                 ${
                                   isPago(c.id)
-                                    ? `<button class="mini-btn red" onclick="desmarcarPago('${c.id}')">Desmarcar pago</button>`
-                                    : `<button class="mini-btn blue" onclick="marcarPago('${c.id}')">Marcar pago</button>`
+                                    ? `<button class="mini-btn red" onclick="desmarcarPago('${c.id}')"
+                                    : `<button class="mini-btn blue" onclick="marcarPago('${c.id}')"
                                 }
                               </div>
                             </div>
