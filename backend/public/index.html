@@ -17,402 +17,79 @@
       --blue:#2563eb;
       --red:#dc2626;
       --purple:#7c3aed;
+      --orange:#ea580c;
     }
 
     *{box-sizing:border-box}
-
-    body{
-      margin:0;
-      font-family:Arial, Helvetica, sans-serif;
-      background:var(--bg);
-      color:var(--text);
-    }
-
-    .layout{
-      display:flex;
-      min-height:100vh;
-    }
-
-    .sidebar{
-      width:280px;
-      background:linear-gradient(180deg,var(--sidebar1),var(--sidebar2));
-      color:#fff;
-      padding:24px 16px;
-    }
-
-    .avatar-box{
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      margin-bottom:18px;
-      width:100%;
-      overflow:hidden;
-    }
-
-    .avatar-frame{
-      width:150px;
-      height:150px;
-      min-width:150px;
-      min-height:150px;
-      max-width:150px;
-      max-height:150px;
-      border-radius:50%;
-      overflow:hidden;
-      box-shadow:0 10px 28px rgba(0,0,0,.28);
-      flex:0 0 150px;
-    }
-
-    .avatar-frame img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-    }
-
-    .brand{
-      text-align:center;
-      margin-bottom:20px;
-    }
-
-    .brand h1{
-      margin:0;
-      font-size:34px;
-    }
-
-    .brand p{
-      margin:8px 0 0;
-      color:#cbd5e1;
-      line-height:1.4;
-    }
-
-    .nav-btn{
-      width:100%;
-      border:none;
-      background:transparent;
-      color:#fff;
-      text-align:left;
-      padding:13px 14px;
-      border-radius:12px;
-      margin-bottom:8px;
-      cursor:pointer;
-      font-weight:700;
-      font-size:15px;
-    }
-
-    .nav-btn:hover{
-      background:rgba(255,255,255,.08);
-    }
-
-    .nav-btn.active{
-      background:#fff;
-      color:#111827;
-    }
-
-    .sidebar-footer{
-      margin-top:24px;
-      padding:12px;
-      border-radius:14px;
-      background:rgba(255,255,255,.06);
-      color:#cbd5e1;
-      font-size:13px;
-    }
-
-    .main{
-      flex:1;
-      padding:24px;
-    }
-
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      flex-wrap:wrap;
-      margin-bottom:20px;
-    }
-
-    .topbar h2{
-      margin:0;
-      font-size:30px;
-    }
-
-    .topbar p{
-      margin:6px 0 0;
-      color:var(--muted);
-    }
-
-    .actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .pill{
-      background:#fff;
-      border:1px solid #dbe2ea;
-      border-radius:12px;
-      padding:10px 12px;
-      font-weight:700;
-    }
-
-    .btn{
-      border:none;
-      border-radius:12px;
-      padding:10px 14px;
-      font-weight:800;
-      cursor:pointer;
-    }
-
+    body{margin:0;font-family:Arial, Helvetica, sans-serif;background:var(--bg);color:var(--text)}
+    .layout{display:flex;min-height:100vh}
+    .sidebar{width:280px;background:linear-gradient(180deg,var(--sidebar1),var(--sidebar2));color:#fff;padding:24px 16px}
+    .avatar-box{display:flex;justify-content:center;align-items:center;margin-bottom:18px;width:100%;overflow:hidden}
+    .avatar-frame{width:150px;height:150px;min-width:150px;min-height:150px;max-width:150px;max-height:150px;border-radius:50%;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.28);flex:0 0 150px}
+    .avatar-frame img{width:100%;height:100%;object-fit:cover;display:block}
+    .brand{text-align:center;margin-bottom:20px}
+    .brand h1{margin:0;font-size:34px}
+    .brand p{margin:8px 0 0;color:#cbd5e1;line-height:1.4}
+    .nav-btn{width:100%;border:none;background:transparent;color:#fff;text-align:left;padding:13px 14px;border-radius:12px;margin-bottom:8px;cursor:pointer;font-weight:700;font-size:15px}
+    .nav-btn:hover{background:rgba(255,255,255,.08)}
+    .nav-btn.active{background:#fff;color:#111827}
+    .sidebar-footer{margin-top:24px;padding:12px;border-radius:14px;background:rgba(255,255,255,.06);color:#cbd5e1;font-size:13px}
+    .main{flex:1;padding:24px}
+    .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+    .topbar h2{margin:0;font-size:30px}
+    .topbar p{margin:6px 0 0;color:var(--muted)}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    .pill{background:#fff;border:1px solid #dbe2ea;border-radius:12px;padding:10px 12px;font-weight:700}
+    .btn{border:none;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer}
     .btn-dark{background:#111827;color:#fff}
     .btn-green{background:var(--green);color:#fff}
     .btn-blue{background:var(--blue);color:#fff}
     .btn-red{background:var(--red);color:#fff}
     .btn-purple{background:var(--purple);color:#fff}
-
-    .card{
-      background:#fff;
-      border:1px solid #dbe2ea;
-      border-radius:20px;
-      padding:18px;
-      margin-bottom:18px;
-    }
-
-    .cards{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-      gap:14px;
-      margin-bottom:18px;
-    }
-
-    .card-title{
-      font-size:14px;
-      color:var(--muted);
-      font-weight:700;
-    }
-
-    .card-value{
-      font-size:34px;
-      font-weight:900;
-      margin-top:8px;
-    }
-
-    .toolbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      flex-wrap:wrap;
-      margin-bottom:14px;
-    }
-
-    .filters{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    input, select, textarea{
-      width:100%;
-      border:1px solid #dbe2ea;
-      border-radius:12px;
-      padding:11px 12px;
-      font-size:14px;
-      background:#fff;
-    }
-
-    .filters input{
-      max-width:260px;
-    }
-
-    .filters select{
-      max-width:180px;
-    }
-
-    textarea{
-      min-height:260px;
-      resize:vertical;
-      font-family:Consolas, monospace;
-    }
-
-    .table-wrap{
-      overflow:auto;
-      border:1px solid #dbe2ea;
-      border-radius:18px;
-      background:#fff;
-    }
-
-    table{
-      width:100%;
-      border-collapse:collapse;
-      min-width:1100px;
-    }
-
-    thead th{
-      background:#0f172a;
-      color:#fff;
-      padding:14px 12px;
-      font-size:12px;
-      text-transform:uppercase;
-      letter-spacing:.6px;
-    }
-
-    tbody td{
-      padding:16px 12px;
-      border-bottom:1px solid #eef2f7;
-      vertical-align:top;
-    }
-
-    .badge{
-      display:inline-block;
-      padding:7px 12px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:800;
-    }
-
+    .card{background:#fff;border:1px solid #dbe2ea;border-radius:20px;padding:18px;margin-bottom:18px}
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:18px}
+    .card-title{font-size:14px;color:var(--muted);font-weight:700}
+    .card-value{font-size:34px;font-weight:900;margin-top:8px}
+    .toolbar{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+    .filters{display:flex;gap:10px;flex-wrap:wrap}
+    input, select, textarea{width:100%;border:1px solid #dbe2ea;border-radius:12px;padding:11px 12px;font-size:14px;background:#fff}
+    .filters input{max-width:260px}
+    .filters select{max-width:180px}
+    textarea{min-height:260px;resize:vertical;font-family:Consolas, monospace}
+    .table-wrap{overflow:auto;border:1px solid #dbe2ea;border-radius:18px;background:#fff}
+    table{width:100%;border-collapse:collapse;min-width:1180px}
+    thead th{background:#0f172a;color:#fff;padding:14px 12px;font-size:12px;text-transform:uppercase;letter-spacing:.6px}
+    tbody td{padding:16px 12px;border-bottom:1px solid #eef2f7;vertical-align:top}
+    .badge{display:inline-block;padding:7px 12px;border-radius:999px;font-size:12px;font-weight:800}
     .badge-ativo{background:#dcfce7;color:#15803d}
     .badge-vencido{background:#fee2e2;color:#b91c1c}
     .badge-teste{background:#dbeafe;color:#1d4ed8}
-    .badge-pago{background:#ede9fe;color:#6d28d9}
-
-    .contact-box{
-      border:1px solid #dbe2ea;
-      border-radius:16px;
-      padding:12px;
-      background:#f8fafc;
-    }
-
-    .contact-label{
-      font-size:11px;
-      font-weight:900;
-      color:#64748b;
-      text-transform:uppercase;
-      margin-bottom:8px;
-      display:block;
-    }
-
-    .row{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
-
-    .saved-phone{
-      background:#fff;
-      border:1px solid #dbe2ea;
-      border-radius:12px;
-      padding:10px 12px;
-      font-weight:800;
-    }
-
-    .mini-btn{
-      border:none;
-      border-radius:12px;
-      padding:10px 12px;
-      font-weight:800;
-      cursor:pointer;
-    }
-
+    .badge-pago{background:#dcfce7;color:#15803d}
+    .badge-renovado{background:#ffedd5;color:#c2410c}
+    .contact-box{border:1px solid #dbe2ea;border-radius:16px;padding:12px;background:#f8fafc}
+    .contact-label{font-size:11px;font-weight:900;color:#64748b;text-transform:uppercase;margin-bottom:8px;display:block}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .saved-phone{background:#fff;border:1px solid #dbe2ea;border-radius:12px;padding:10px 12px;font-weight:800}
+    .mini-btn{border:none;border-radius:12px;padding:10px 12px;font-weight:800;cursor:pointer}
     .mini-outline{background:#fff;border:1px solid #d1d5db}
     .mini-green{background:var(--green);color:#fff}
     .mini-blue{background:var(--blue);color:#fff}
     .mini-red{background:var(--red);color:#fff}
     .mini-gray{background:#6b7280;color:#fff}
-
-    .table-actions{
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-      min-width:340px;
-    }
-
-    .grid-charges{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-      gap:14px;
-    }
-
-    .charge-item{
-      padding:10px 0;
-      border-bottom:1px solid #eef2f7;
-    }
-
-    .empty{
-      color:var(--muted);
-      padding:18px 0;
-      text-align:center;
-      font-weight:700;
-    }
-
-    .result-box{
-      margin-top:14px;
-      padding:16px;
-      border-radius:16px;
-      background:#f8fafc;
-      border:1px dashed #cbd5e1;
-      font-weight:700;
-    }
-
-    .login-screen{
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:linear-gradient(135deg,#071226,#0f172a,#1e293b);
-      padding:24px;
-    }
-
-    .login-card{
-      width:100%;
-      max-width:420px;
-      background:#fff;
-      border-radius:26px;
-      padding:26px;
-      box-shadow:0 20px 60px rgba(0,0,0,.25);
-    }
-
-    .login-avatar{
-      width:120px;
-      height:120px;
-      border-radius:50%;
-      overflow:hidden;
-      margin:0 auto 18px;
-      box-shadow:0 10px 24px rgba(0,0,0,.16);
-    }
-
-    .login-avatar img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-    }
-
-    .login-card h1{
-      margin:0;
-      text-align:center;
-      font-size:34px;
-    }
-
-    .login-card p{
-      text-align:center;
-      color:var(--muted);
-    }
-
-    .login-error{
-      display:none;
-      margin-top:12px;
-      background:#fee2e2;
-      color:#b91c1c;
-      padding:12px;
-      border-radius:12px;
-      font-weight:700;
-    }
-
-    @media (max-width: 980px){
-      .layout{flex-direction:column}
-      .sidebar{width:100%}
-    }
+    .mini-orange{background:var(--orange);color:#fff}
+    .table-actions{display:flex;flex-direction:column;gap:12px;min-width:380px}
+    .grid-charges{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+    .charge-item{padding:10px 0;border-bottom:1px solid #eef2f7}
+    .empty{color:var(--muted);padding:18px 0;text-align:center;font-weight:700}
+    .result-box{margin-top:14px;padding:16px;border-radius:16px;background:#f8fafc;border:1px dashed #cbd5e1;font-weight:700}
+    .login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#071226,#0f172a,#1e293b);padding:24px}
+    .login-card{width:100%;max-width:420px;background:#fff;border-radius:26px;padding:26px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+    .login-avatar{width:120px;height:120px;border-radius:50%;overflow:hidden;margin:0 auto 18px;box-shadow:0 10px 24px rgba(0,0,0,.16)}
+    .login-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+    .login-card h1{margin:0;text-align:center;font-size:34px}
+    .login-card p{text-align:center;color:var(--muted)}
+    .login-error{display:none;margin-top:12px;background:#fee2e2;color:#b91c1c;padding:12px;border-radius:12px;font-weight:700}
+    @media (max-width: 980px){.layout{flex-direction:column}.sidebar{width:100%}}
   </style>
 </head>
 <body>
@@ -425,6 +102,7 @@
     let screen = "dashboard";
     let clientes = [];
     let pagos = [];
+    let renovados = [];
     let contatos = {};
     let filtroBusca = "";
     let filtroStatus = "";
@@ -480,8 +158,13 @@
       return pagos.includes(id);
     }
 
+    function isRenovado(id) {
+      return renovados.includes(id);
+    }
+
     function statusLabel(cliente) {
       if (isPago(cliente.id)) return "Pago";
+      if (isRenovado(cliente.id)) return "Renovado";
       if (cliente.status === "ativo") return "Ativo";
       if (cliente.status === "teste") return "Teste";
       if (cliente.status === "vencido") return "Vencido";
@@ -490,6 +173,7 @@
 
     function statusClass(cliente) {
       if (isPago(cliente.id)) return "badge badge-pago";
+      if (isRenovado(cliente.id)) return "badge badge-renovado";
       if (cliente.status === "ativo") return "badge badge-ativo";
       if (cliente.status === "teste") return "badge badge-teste";
       return "badge badge-vencido";
@@ -500,6 +184,10 @@
         const aPago = isPago(a.id);
         const bPago = isPago(b.id);
         if (aPago !== bPago) return aPago ? 1 : -1;
+
+        const aRenovado = isRenovado(a.id);
+        const bRenovado = isRenovado(b.id);
+        if (aRenovado !== bRenovado) return aRenovado ? 1 : -1;
 
         const da = parseBrDate(a.vencimento);
         const db = parseBrDate(b.vencimento);
@@ -521,19 +209,21 @@
 
       if (filtroStatus === "pago") {
         lista = lista.filter(c => isPago(c.id));
+      } else if (filtroStatus === "renovado") {
+        lista = lista.filter(c => isRenovado(c.id));
       } else if (filtroStatus) {
-        lista = lista.filter(c => !isPago(c.id) && c.status === filtroStatus);
+        lista = lista.filter(c => !isPago(c.id) && !isRenovado(c.id) && c.status === filtroStatus);
       }
 
       return lista;
     }
 
     function clientesPorDias(days) {
-      return sortClientes(clientes).filter(c => !isPago(c.id) && diffDays(c.vencimento) === days);
+      return sortClientes(clientes).filter(c => !isPago(c.id) && !isRenovado(c.id) && diffDays(c.vencimento) === days);
     }
 
     function clientesVencidos() {
-      return sortClientes(clientes).filter(c => !isPago(c.id) && c.status === "vencido");
+      return sortClientes(clientes).filter(c => !isPago(c.id) && !isRenovado(c.id) && c.status === "vencido");
     }
 
     function clientesElegiveisSorteio() {
@@ -665,6 +355,7 @@
         const data = await fetchJson(API + "/api/clients");
         clientes = data.clients || [];
         pagos = await fetchJson(API + "/api/clients/pagos");
+        renovados = await fetchJson(API + "/api/clients/renovados");
         contatos = await fetchJson(API + "/api/clients/contatos");
         render();
       } catch (error) {
@@ -724,6 +415,7 @@
       try {
         await fetchJson(API + "/api/clients/pagar/" + encodeURIComponent(id), { method: "POST" });
         if (!pagos.includes(id)) pagos.push(id);
+        renovados = renovados.filter(item => item !== id);
         render();
       } catch (error) {
         console.error(error);
@@ -739,6 +431,29 @@
       } catch (error) {
         console.error(error);
         alert("Erro ao desmarcar pagamento.");
+      }
+    }
+
+    async function marcarRenovado(id) {
+      try {
+        await fetchJson(API + "/api/clients/renovado/" + encodeURIComponent(id), { method: "POST" });
+        if (!renovados.includes(id)) renovados.push(id);
+        pagos = pagos.filter(item => item !== id);
+        render();
+      } catch (error) {
+        console.error(error);
+        alert("Erro ao marcar como renovado.");
+      }
+    }
+
+    async function desmarcarRenovado(id) {
+      try {
+        await fetchJson(API + "/api/clients/desmarcar-renovado/" + encodeURIComponent(id), { method: "POST" });
+        renovados = renovados.filter(item => item !== id);
+        render();
+      } catch (error) {
+        console.error(error);
+        alert("Erro ao desmarcar renovado.");
       }
     }
 
@@ -1005,6 +720,7 @@ Equipe MS TV`;
       const vencidos = clientes.filter(c => c.status === "vencido").length;
       const testes = clientes.filter(c => c.status === "teste").length;
       const receitaBruta = pagos.length * VALOR_MENSAL;
+      const renovadosTotal = renovados.length;
 
       document.getElementById("app").innerHTML = `
         <div class="topbar">
@@ -1024,6 +740,7 @@ Equipe MS TV`;
           <div class="card"><div class="card-title">Ativos</div><div class="card-value">${ativos}</div></div>
           <div class="card"><div class="card-title">Vencidos</div><div class="card-value">${vencidos}</div></div>
           <div class="card"><div class="card-title">Testes</div><div class="card-value">${testes}</div></div>
+          <div class="card"><div class="card-title">Renovados</div><div class="card-value">${renovadosTotal}</div></div>
           <div class="card"><div class="card-title">Receita bruta</div><div class="card-value">R$ ${receitaBruta.toFixed(2).replace(".", ",")}</div></div>
         </div>
       `;
@@ -1059,7 +776,8 @@ Equipe MS TV`;
                 <option value="ativo" ${filtroStatus === "ativo" ? "selected" : ""}>Ativo</option>
                 <option value="teste" ${filtroStatus === "teste" ? "selected" : ""}>Teste</option>
                 <option value="vencido" ${filtroStatus === "vencido" ? "selected" : ""}>Vencido</option>
-                <option value="pago" ${filtroStatus === "pago" ? "selected" : ""}>Pagos</option>
+                <option value="renovado" ${filtroStatus === "renovado" ? "selected" : ""}>Renovado</option>
+                <option value="pago" ${filtroStatus === "pago" ? "selected" : ""}>Pago</option>
               </select>
             </div>
           </div>
@@ -1126,9 +844,15 @@ Equipe MS TV`;
                                 </a>
 
                                 ${
+                                  isRenovado(c.id)
+                                    ? `<button class="mini-btn mini-orange" onclick='desmarcarRenovado(${safeId})'>Renovado</button>`
+                                    : `<button class="mini-btn mini-outline" onclick='marcarRenovado(${safeId})'>Renovado</button>`
+                                }
+
+                                ${
                                   isPago(c.id)
-                                    ? `<button class="mini-btn mini-red" onclick='desmarcarPago(${safeId})'>Desmarcar pago</button>`
-                                    : `<button class="mini-btn mini-blue" onclick='marcarPago(${safeId})'>Marcar pago</button>`
+                                    ? `<button class="mini-btn mini-green" onclick='desmarcarPago(${safeId})'>Pago</button>`
+                                    : `<button class="mini-btn mini-blue" onclick='marcarPago(${safeId})'>Pago</button>`
                                 }
                               </div>
                             </div>
@@ -1203,13 +927,13 @@ Equipe MS TV`;
 
     function renderFinanceiro() {
       const receitaBruta = pagos.length * VALOR_MENSAL;
-      const vencidos = clientes.filter(c => !isPago(c.id) && c.status === "vencido").length;
+      const vencidos = clientes.filter(c => !isPago(c.id) && !isRenovado(c.id) && c.status === "vencido").length;
 
       document.getElementById("app").innerHTML = `
         <div class="topbar">
           <div>
             <h2>Financeiro</h2>
-            <p>Alimentado sempre que um cliente é marcado como pago.</p>
+            <p>Receita soma apenas os clientes marcados como pago.</p>
           </div>
           <div class="actions">
             <div class="pill">Usuário: ${escapeHtml(currentUser || "admin")}</div>
@@ -1221,6 +945,7 @@ Equipe MS TV`;
         <div class="cards">
           <div class="card"><div class="card-title">Mensalidade base</div><div class="card-value">R$ ${VALOR_MENSAL.toFixed(2).replace(".", ",")}</div></div>
           <div class="card"><div class="card-title">Clientes pagos</div><div class="card-value">${pagos.length}</div></div>
+          <div class="card"><div class="card-title">Clientes renovados</div><div class="card-value">${renovados.length}</div></div>
           <div class="card"><div class="card-title">Receita bruta</div><div class="card-value">R$ ${receitaBruta.toFixed(2).replace(".", ",")}</div></div>
           <div class="card"><div class="card-title">Clientes vencidos</div><div class="card-value">${vencidos}</div></div>
         </div>
@@ -1256,7 +981,7 @@ Equipe MS TV`;
         <div class="topbar">
           <div>
             <h2>Sorteio do mês</h2>
-            <p>Participam todos os clientes marcados como pagos.</p>
+            <p>Participam todos os clientes marcados como pago.</p>
           </div>
           <div class="actions">
             <div class="pill">Usuário: ${escapeHtml(currentUser || "admin")}</div>
