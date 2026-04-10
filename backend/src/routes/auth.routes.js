@@ -18,7 +18,6 @@ function readTokenFromRequest(req) {
   }
 
   const cookieHeader = req.headers.cookie || "";
-
   const cookies = Object.fromEntries(
     cookieHeader
       .split(";")
