@@ -36,662 +36,195 @@
       color:var(--text);
     }
 
-    .layout{
-      display:flex;
-      min-height:100vh;
-    }
-
+    .layout{display:flex;min-height:100vh}
     .sidebar{
-      width:300px;
-      background:linear-gradient(180deg,var(--sidebar1) 0%,var(--sidebar2) 100%);
+      width:290px;
+      background:linear-gradient(180deg,var(--sidebar1),var(--sidebar2));
       color:#fff;
       padding:24px 18px;
-      box-shadow:4px 0 18px rgba(0,0,0,.08);
       position:sticky;
       top:0;
       height:100vh;
       overflow:auto;
     }
-
-    .avatar-box{
-      display:flex;
-      justify-content:center;
-      margin-bottom:18px;
-    }
-
+    .avatar-box{display:flex;justify-content:center;margin-bottom:18px}
     .avatar-frame{
-      width:170px;
-      height:170px;
-      border-radius:50%;
-      overflow:hidden;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:transparent;
-      box-shadow:0 10px 28px rgba(0,0,0,.28);
+      width:150px;height:150px;border-radius:50%;overflow:hidden;
+      box-shadow:0 10px 28px rgba(0,0,0,.28)
     }
-
-    .avatar-box img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      border-radius:50%;
-      display:block;
-      background:transparent;
-    }
-
-    .brand{
-      margin-bottom:22px;
-      text-align:center;
-    }
-
-    .brand h1{
-      margin:0;
-      font-size:34px;
-      line-height:1;
-      font-weight:800;
-      letter-spacing:-1px;
-    }
-
-    .brand p{
-      margin:10px 0 0;
-      color:#cbd5e1;
-      font-size:14px;
-      line-height:1.45;
-    }
-
+    .avatar-frame img{width:100%;height:100%;object-fit:cover;display:block}
+    .brand{text-align:center;margin-bottom:18px}
+    .brand h1{margin:0;font-size:34px;font-weight:900}
+    .brand p{margin:10px 0 0;color:#cbd5e1;line-height:1.45}
     .menu-title{
-      font-size:12px;
-      text-transform:uppercase;
-      letter-spacing:1px;
-      color:#94a3b8;
-      margin:18px 0 10px;
-      padding-left:8px;
+      font-size:12px;text-transform:uppercase;letter-spacing:1px;
+      color:#94a3b8;margin:18px 0 10px;padding-left:8px
     }
-
     .nav-btn{
-      width:100%;
-      border:none;
-      background:transparent;
-      color:#e5e7eb;
-      text-align:left;
-      padding:14px 16px;
-      border-radius:14px;
-      margin-bottom:10px;
-      cursor:pointer;
-      font-size:15px;
-      font-weight:700;
-      transition:all .2s ease;
+      width:100%;border:none;background:transparent;color:#e5e7eb;text-align:left;
+      padding:14px 16px;border-radius:14px;margin-bottom:10px;cursor:pointer;
+      font-size:15px;font-weight:700
     }
-
-    .nav-btn:hover{
-      background:rgba(255,255,255,.08);
-      transform:translateX(4px);
-    }
-
-    .nav-btn.active{
-      background:#fff;
-      color:#111827;
-      box-shadow:0 10px 18px rgba(255,255,255,.08);
-    }
-
+    .nav-btn:hover{background:rgba(255,255,255,.08)}
+    .nav-btn.active{background:#fff;color:#111827}
     .sidebar-footer{
-      margin-top:26px;
-      padding:14px;
-      border-radius:16px;
-      background:rgba(255,255,255,.06);
-      color:#cbd5e1;
-      font-size:13px;
-      line-height:1.5;
+      margin-top:26px;padding:14px;border-radius:16px;background:rgba(255,255,255,.06);
+      color:#cbd5e1;font-size:13px;line-height:1.5
     }
 
-    .main{
-      flex:1;
-      padding:26px;
-    }
-
+    .main{flex:1;padding:26px}
     .topbar{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:16px;
-      flex-wrap:wrap;
-      margin-bottom:22px;
+      display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+      flex-wrap:wrap;margin-bottom:22px
     }
-
-    .topbar h2{
-      margin:0;
-      font-size:30px;
-      letter-spacing:-.4px;
-    }
-
-    .topbar p{
-      margin:6px 0 0;
-      color:var(--muted);
+    .topbar h2{margin:0;font-size:30px}
+    .topbar p{margin:6px 0 0;color:var(--muted)}
+    .top-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .welcome-user{
+      color:#475569;font-weight:700;font-size:14px;padding:10px 12px;background:#fff;
+      border:1px solid #e2e8f0;border-radius:14px;box-shadow:var(--shadow-soft)
     }
 
     .btn{
-      border:none;
-      border-radius:14px;
-      padding:11px 16px;
-      font-weight:800;
-      cursor:pointer;
-      transition:.2s;
-      box-shadow:var(--shadow-soft);
+      border:none;border-radius:14px;padding:11px 16px;font-weight:800;cursor:pointer;
+      box-shadow:var(--shadow-soft)
     }
-
-    .btn:hover{
-      opacity:.96;
-      transform:translateY(-1px);
-    }
-
     .btn-dark{background:#111827;color:#fff}
     .btn-green{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff}
     .btn-blue{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff}
     .btn-red{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}
     .btn-gray{background:linear-gradient(135deg,#64748b,#475569);color:#fff}
 
-    .grid{
-      display:grid;
-      gap:16px;
-    }
-
-    .cards{
-      grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
-      margin-bottom:22px;
-    }
-
+    .grid{display:grid;gap:16px}
+    .cards{grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin-bottom:22px}
     .card{
-      background:var(--card);
-      border:1px solid rgba(226,232,240,.9);
-      border-radius:var(--radius);
-      padding:20px;
-      box-shadow:var(--shadow);
+      background:var(--card);border:1px solid rgba(226,232,240,.9);
+      border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)
     }
-
-    .card-title{
-      color:var(--muted);
-      font-size:14px;
-      font-weight:700;
-    }
-
-    .card-value{
-      font-size:36px;
-      font-weight:900;
-      margin-top:10px;
-      letter-spacing:-1px;
-    }
-
-    .two-cols{
-      display:grid;
-      grid-template-columns:1.45fr .95fr;
-      gap:18px;
-    }
+    .card-title{color:var(--muted);font-size:14px;font-weight:700}
+    .card-value{font-size:36px;font-weight:900;margin-top:10px}
 
     .toolbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
-      margin-bottom:16px;
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      flex-wrap:wrap;margin-bottom:16px
     }
-
-    .filters{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-
-    .filters > *{
-      width:auto;
-      min-width:170px;
-    }
+    .filters{display:flex;gap:8px;flex-wrap:wrap}
+    .filters > *{width:auto;min-width:170px}
 
     input, select, textarea{
-      width:100%;
-      border:1px solid #dbe2ea;
-      border-radius:14px;
-      padding:12px 13px;
-      font-size:14px;
-      outline:none;
-      background:#fff;
-      transition:.2s;
+      width:100%;border:1px solid #dbe2ea;border-radius:14px;padding:12px 13px;
+      font-size:14px;outline:none;background:#fff
     }
-
-    input:focus, select:focus, textarea:focus{
-      border-color:#3b82f6;
-      box-shadow:0 0 0 4px rgba(59,130,246,.10);
-    }
-
-    textarea{
-      min-height:260px;
-      resize:vertical;
-      font-family:Consolas, Monaco, monospace;
-      line-height:1.5;
-    }
-
-    .actions-bar{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin:12px 0 8px;
-    }
-
-    .notice{
-      color:var(--muted);
-      font-size:12px;
-      margin-bottom:12px;
-    }
+    textarea{min-height:260px;resize:vertical;font-family:Consolas, Monaco, monospace;line-height:1.5}
+    .actions-bar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 8px}
+    .notice{color:var(--muted);font-size:12px;margin-bottom:12px}
+    .muted{color:var(--muted)}
+    .empty{color:var(--muted);padding:22px 0;text-align:center;font-weight:700}
 
     .table-shell{
-      border:1px solid #dbe4ee;
-      border-radius:24px;
-      overflow:hidden;
-      background:#fff;
-      box-shadow:var(--shadow);
+      border:1px solid #dbe4ee;border-radius:24px;overflow:hidden;background:#fff;
+      box-shadow:var(--shadow)
     }
-
-    .table-wrap{
-      overflow:auto;
-    }
-
-    table{
-      width:100%;
-      border-collapse:separate;
-      border-spacing:0;
-      min-width:1100px;
-    }
-
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:separate;border-spacing:0;min-width:1100px}
     thead th{
-      background:linear-gradient(135deg,#0f172a,#1e293b);
-      color:#f8fafc;
-      font-size:12px;
-      text-transform:uppercase;
-      letter-spacing:.7px;
-      font-weight:800;
-      padding:16px 16px;
-      border-bottom:none;
-      position:sticky;
-      top:0;
-      z-index:2;
+      background:linear-gradient(135deg,#0f172a,#1e293b);color:#f8fafc;font-size:12px;
+      text-transform:uppercase;letter-spacing:.7px;font-weight:800;padding:16px 16px
     }
-
-    thead th:first-child{border-top-left-radius:18px}
-    thead th:last-child{border-top-right-radius:18px}
-
     tbody td{
-      padding:18px 16px;
-      border-bottom:1px solid #eef2f7;
-      font-size:14px;
-      vertical-align:top;
-      background:#fff;
-      transition:.18s ease;
+      padding:18px 16px;border-bottom:1px solid #eef2f7;font-size:14px;vertical-align:top;
+      background:#fff
     }
-
-    tbody tr:nth-child(even) td{
-      background:#fcfdff;
-    }
-
-    tbody tr:hover td{
-      background:#f8fbff;
-    }
-
-    tbody tr:last-child td{
-      border-bottom:none;
-    }
-
-    .login-cell{
-      font-weight:800;
-      color:#0f172a;
-      font-size:15px;
-    }
-
-    .date-cell{
-      font-weight:700;
-      color:#1e293b;
-    }
-
-    .conn-cell{
-      font-weight:800;
-      color:#334155;
-    }
+    tbody tr:last-child td{border-bottom:none}
+    .login-cell{font-weight:800;font-size:15px}
+    .date-cell{font-weight:700}
+    .conn-cell{font-weight:800;color:#334155}
 
     .badge{
-      display:inline-block;
-      padding:7px 12px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:800;
-      letter-spacing:.2px;
-      box-shadow:inset 0 0 0 1px rgba(255,255,255,.4);
+      display:inline-block;padding:7px 12px;border-radius:999px;font-size:12px;font-weight:800
     }
-
     .badge-ativo{background:var(--green-soft);color:#15803d}
     .badge-teste{background:var(--blue-soft);color:#1d4ed8}
     .badge-vencido{background:var(--red-soft);color:#b91c1c}
     .badge-pago{background:var(--purple-soft);color:#6d28d9}
 
-    .table-actions{
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-      min-width:340px;
-    }
-
+    .table-actions{display:flex;flex-direction:column;gap:12px;min-width:340px}
     .contact-card{
-      width:100%;
-      background:linear-gradient(180deg,#f8fafc 0%, #f1f5f9 100%);
-      border:1px solid #e2e8f0;
-      border-radius:18px;
-      padding:14px;
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+      background:linear-gradient(180deg,#f8fafc 0%, #f1f5f9 100%);border:1px solid #e2e8f0;
+      border-radius:18px;padding:14px
     }
-
     .contact-label{
-      display:block;
-      font-size:11px;
-      font-weight:900;
-      color:#64748b;
-      margin-bottom:10px;
-      text-transform:uppercase;
-      letter-spacing:.9px;
+      display:block;font-size:11px;font-weight:900;color:#64748b;margin-bottom:10px;
+      text-transform:uppercase;letter-spacing:.9px
     }
-
     .contact-view{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap
     }
-
     .saved-phone{
-      font-size:15px;
-      color:#0f172a;
-      font-weight:900;
-      background:#fff;
-      border:1px solid #e2e8f0;
-      padding:11px 13px;
-      border-radius:14px;
-      box-shadow:var(--shadow-soft);
+      font-size:15px;color:#0f172a;font-weight:900;background:#fff;border:1px solid #e2e8f0;
+      padding:11px 13px;border-radius:14px
     }
-
-    .contact-row{
-      display:flex;
-      gap:8px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-
-    .input-whatsapp{
-      flex:1;
-      min-width:185px;
-      border:1px solid #dbe2ea;
-      border-radius:14px;
-      padding:12px 13px;
-      font-size:14px;
-      background:#fff;
-      transition:.2s;
-      color:#111827;
-    }
-
-    .input-whatsapp:focus{
-      border-color:#22c55e;
-      outline:none;
-      box-shadow:0 0 0 4px rgba(34,197,94,.12);
-    }
-
-    .action-buttons{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-
+    .contact-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .input-whatsapp{flex:1;min-width:185px}
+    .action-buttons{display:flex;gap:8px;flex-wrap:wrap}
     .mini-btn{
-      border:none;
-      padding:11px 14px;
-      border-radius:14px;
-      cursor:pointer;
-      font-size:13px;
-      font-weight:800;
-      text-decoration:none;
-      color:#111827;
-      transition:.2s;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      line-height:1;
-      box-shadow:var(--shadow-soft);
+      border:none;padding:11px 14px;border-radius:14px;cursor:pointer;font-size:13px;
+      font-weight:800;text-decoration:none;color:#111827;display:inline-flex;align-items:center;justify-content:center
     }
+    .mini-btn.outline{background:#fff;border:1px solid #d1d5db;color:#111827}
+    .mini-btn.blue{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff}
+    .mini-btn.green{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff}
+    .mini-btn.gray{background:linear-gradient(135deg,#6b7280,#4b5563);color:#fff}
+    .mini-btn.red{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}
 
-    .mini-btn:hover{
-      transform:translateY(-1px);
-      opacity:.96;
-    }
-
-    .mini-btn.outline{
-      background:#fff;
-      border:1px solid #d1d5db;
-      color:#111827;
-    }
-
-    .mini-btn.blue{
-      background:linear-gradient(135deg,#3b82f6,#2563eb);
-      color:#fff;
-    }
-
-    .mini-btn.green{
-      background:linear-gradient(135deg,#22c55e,#16a34a);
-      color:#fff;
-    }
-
-    .mini-btn.gray{
-      background:linear-gradient(135deg,#6b7280,#4b5563);
-      color:#fff;
-    }
-
-    .mini-btn.red{
-      background:linear-gradient(135deg,#ef4444,#dc2626);
-      color:#fff;
-    }
-
-    .small-card{
-      padding:14px;
-      border:1px solid var(--line);
-      border-radius:16px;
-      background:#fff;
-      margin-bottom:12px;
-    }
-
-    .small-card strong{
-      display:block;
-      margin-bottom:5px;
-    }
-
-    .muted{
-      color:var(--muted);
-    }
-
-    .charge-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-      gap:16px;
-    }
-
+    .charge-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
     .charge-card{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:22px;
-      padding:16px;
-      box-shadow:var(--shadow);
+      background:#fff;border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:var(--shadow)
     }
-
-    .charge-card h3{
-      margin:0 0 10px;
-      font-size:18px;
-    }
-
-    .charge-card p{
-      margin:0 0 14px;
-      color:#334155;
-      min-height:40px;
-    }
-
+    .charge-card h3{margin:0 0 10px;font-size:18px}
+    .charge-card p{margin:0 0 14px;color:#334155;min-height:40px}
     .charge-list{
-      margin-top:14px;
-      max-height:320px;
-      overflow:auto;
-      border-top:1px solid #eef2f7;
-      padding-top:12px;
+      margin-top:14px;max-height:320px;overflow:auto;border-top:1px solid #eef2f7;padding-top:12px
     }
+    .charge-item{padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:14px}
+    .charge-item strong{display:block;margin-bottom:4px;color:#0f172a}
 
-    .charge-item{
-      padding:10px 0;
-      border-bottom:1px solid #f1f5f9;
-      font-size:14px;
+    .promo-box,.raffle-box,.import-box{
+      background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow)
     }
-
-    .charge-item strong{
-      display:block;
-      margin-bottom:4px;
-      color:#0f172a;
-    }
-
-    .promo-box, .raffle-box, .import-box{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:20px;
-      padding:18px;
-      box-shadow:var(--shadow);
-    }
-
     .result-box{
-      margin-top:14px;
-      padding:16px;
-      border-radius:16px;
-      background:#f8fafc;
-      border:1px dashed #cbd5e1;
-      font-weight:700;
+      margin-top:14px;padding:16px;border-radius:16px;background:#f8fafc;
+      border:1px dashed #cbd5e1;font-weight:700
     }
-
-    .empty{
-      color:var(--muted);
-      padding:22px 0;
-      text-align:center;
-      font-weight:700;
+    .small-card{
+      padding:14px;border:1px solid var(--line);border-radius:16px;background:#fff;margin-bottom:12px
     }
 
     .login-screen{
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:24px;
-      background:linear-gradient(135deg,#071226 0%,#0f172a 50%,#1e293b 100%);
+      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+      background:linear-gradient(135deg,#071226 0%,#0f172a 50%,#1e293b 100%)
     }
-
     .login-card{
-      width:100%;
-      max-width:430px;
-      background:rgba(255,255,255,.98);
-      border-radius:28px;
-      padding:28px;
-      box-shadow:0 20px 60px rgba(0,0,0,.28);
+      width:100%;max-width:430px;background:rgba(255,255,255,.98);border-radius:28px;
+      padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.28)
     }
-
     .login-avatar{
-      width:120px;
-      height:120px;
-      border-radius:50%;
-      overflow:hidden;
-      margin:0 auto 18px;
-      box-shadow:0 10px 24px rgba(0,0,0,.16);
+      width:120px;height:120px;border-radius:50%;overflow:hidden;margin:0 auto 18px;
+      box-shadow:0 10px 24px rgba(0,0,0,.16)
     }
-
-    .login-avatar img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-    }
-
-    .login-card h1{
-      margin:0;
-      text-align:center;
-      font-size:34px;
-      color:#0f172a;
-    }
-
-    .login-card p{
-      text-align:center;
-      color:#64748b;
-      margin:10px 0 20px;
-      line-height:1.5;
-    }
-
-    .login-form{
-      display:grid;
-      gap:12px;
-    }
-
+    .login-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+    .login-card h1{margin:0;text-align:center;font-size:34px;color:#0f172a}
+    .login-card p{text-align:center;color:#64748b;margin:10px 0 20px;line-height:1.5}
+    .login-form{display:grid;gap:12px}
     .login-error{
-      margin-top:12px;
-      padding:12px 14px;
-      border-radius:14px;
-      background:#fee2e2;
-      color:#b91c1c;
-      font-weight:700;
-      display:none;
-    }
-
-    .top-actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
-
-    .welcome-user{
-      color:#475569;
-      font-weight:700;
-      font-size:14px;
-      padding:10px 12px;
-      background:#fff;
-      border:1px solid #e2e8f0;
-      border-radius:14px;
-      box-shadow:var(--shadow-soft);
-    }
-
-    .import-help{
-      background:#f8fafc;
-      border:1px dashed #cbd5e1;
-      border-radius:16px;
-      padding:16px;
-      margin-bottom:14px;
-      color:#475569;
-      line-height:1.6;
-    }
-
-    .import-status{
-      margin-top:12px;
-      padding:12px 14px;
-      border-radius:14px;
-      background:#ecfeff;
-      color:#155e75;
-      font-weight:700;
-      display:none;
+      margin-top:12px;padding:12px 14px;border-radius:14px;background:#fee2e2;color:#b91c1c;
+      font-weight:700;display:none
     }
 
     @media (max-width: 980px){
       .layout{flex-direction:column}
-      .sidebar{
-        width:100%;
-        height:auto;
-        position:relative;
-      }
+      .sidebar{width:100%;height:auto;position:relative}
       .main{padding:18px}
-      .two-cols{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -744,14 +277,11 @@
 
     function formatDateDisplay(value) {
       if (!value) return "-";
-      const brMatch = String(value).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      if (brMatch) return value;
       return String(value);
     }
 
     function parseBrDate(dateStr) {
-      const formatted = formatDateDisplay(dateStr);
-      const match = formatted.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      const match = String(dateStr || "").match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
       if (!match) return null;
       const [, dd, mm, yyyy] = match;
       return new Date(Number(yyyy), Number(mm) - 1, Number(dd), 12, 0, 0);
@@ -772,9 +302,10 @@
 
     function statusLabel(cliente) {
       if (isPago(cliente.id)) return "Pago";
-      return cliente.status === "ativo" ? "Ativo" :
-             cliente.status === "teste" ? "Teste" :
-             cliente.status === "vencido" ? "Vencido" : "Inativo";
+      return cliente.status === "ativo" ? "Ativo"
+        : cliente.status === "teste" ? "Teste"
+        : cliente.status === "vencido" ? "Vencido"
+        : "Inativo";
     }
 
     function statusBadgeClass(cliente) {
@@ -832,8 +363,8 @@
     }
 
     function clientesEmDiaParaSorteio() {
-  return clientes.filter(c => isPago(c.id));
-}
+      return clientes.filter(c => isPago(c.id));
+    }
 
     async function checkSession() {
       const token = localStorage.getItem("ms_tv_token");
@@ -862,9 +393,7 @@
       try {
         const data = await fetchJson(API + "/api/auth/login", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password })
         });
 
@@ -880,9 +409,7 @@
 
     async function logout() {
       try {
-        await fetchJson(API + "/api/auth/logout", {
-          method: "POST"
-        });
+        await fetchJson(API + "/api/auth/logout", { method: "POST" });
       } catch {}
 
       localStorage.removeItem("ms_tv_token");
@@ -963,23 +490,18 @@
         const data = await fetchJson(API + "/api/clients");
         clientes = data.clients || [];
 
-        const pagosRes = await fetchJson(API + "/api/clients/pagos");
-        pagos = pagosRes || [];
-
-        const contatosRes = await fetchJson(API + "/api/clients/contatos");
-        contatos = contatosRes || {};
+        pagos = await fetchJson(API + "/api/clients/pagos");
+        contatos = await fetchJson(API + "/api/clients/contatos");
 
         render();
       } catch (error) {
-        console.error("Erro ao carregar clientes:", error);
-        if (document.getElementById("app")) {
-          document.getElementById("app").innerHTML = `
-            <div class="card">
-              <h3>Erro ao carregar painel</h3>
-              <p class="muted">Tente novamente em alguns instantes.</p>
-            </div>
-          `;
-        }
+        console.error("Erro ao carregar painel:", error);
+        document.getElementById("app").innerHTML = `
+          <div class="card">
+            <h3>Erro ao carregar painel</h3>
+            <p class="muted">Tente novamente em alguns instantes.</p>
+          </div>
+        `;
       }
     }
 
@@ -996,9 +518,7 @@
       try {
         const data = await fetchJson(API + "/api/clients/importar-lista", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ lista })
         });
 
@@ -1010,24 +530,20 @@
         renderAppShell();
         render();
       } catch (error) {
-        alert("Erro ao processar lista manual.");
         console.error(error);
+        alert("Erro ao processar lista manual.");
       }
     }
 
     async function limparListaManual() {
-      if (!confirm("Tem certeza que deseja limpar todos os clientes importados?")) {
-        return;
-      }
+      if (!confirm("Tem certeza que deseja limpar todos os clientes importados?")) return;
 
       try {
-        await fetchJson(API + "/api/clients/limpar-lista", {
-          method: "POST"
-        });
+        await fetchJson(API + "/api/clients/limpar-lista", { method: "POST" });
         await carregar();
       } catch (error) {
-        alert("Erro ao limpar lista.");
         console.error(error);
+        alert("Erro ao limpar lista.");
       }
     }
 
@@ -1036,7 +552,8 @@
         await fetchJson(API + "/api/clients/pagar/" + encodeURIComponent(id), { method: "POST" });
         if (!pagos.includes(id)) pagos.push(id);
         render();
-      } catch {
+      } catch (error) {
+        console.error(error);
         alert("Erro ao marcar como pago.");
       }
     }
@@ -1046,7 +563,8 @@
         await fetchJson(API + "/api/clients/desmarcar-pago/" + encodeURIComponent(id), { method: "POST" });
         pagos = pagos.filter(item => item !== id);
         render();
-      } catch {
+      } catch (error) {
+        console.error(error);
         alert("Erro ao desmarcar pagamento.");
       }
     }
@@ -1061,41 +579,7 @@
       renderClientes();
     }
 
-    async function removerContato(id) {
-  const confirmar = confirm("Deseja realmente excluir o WhatsApp deste cliente?");
-  if (!confirmar) return;
-
-  try {
-    await fetchJson(API + "/api/clients/contatos/" + encodeURIComponent(id), {
-      method: "DELETE"
-    });
-
-    delete contatos[id];
-    delete editandoContato[id];
-    renderClientes();
-  } catch (error) {
-    console.error("Erro ao excluir contato:", error);
-    alert("Erro ao excluir contato.");
-  }
-}
-  const confirmar = confirm("Deseja realmente excluir o WhatsApp deste cliente?");
-  if (!confirmar) return;
-
-  try {
-    const safeId = decodeURIComponent(id);
-
-    await fetchJson(API + "/api/clients/contatos/" + encodeURIComponent(safeId), {
-      method: "DELETE"
-    });
-
-    delete contatos[safeId];
-    delete editandoContato[safeId];
-    renderClientes();
-  } catch (error) {
-    console.error("Erro ao excluir contato:", error);
-    alert("Erro ao excluir contato.");
-  }
-}
+    async function salvarContato(id) {
       const input = document.getElementById("fone_" + id);
       const telefone = input.value.trim();
 
@@ -1107,28 +591,43 @@
       try {
         await fetchJson(API + "/api/clients/contatos/" + encodeURIComponent(id), {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ telefone })
         });
 
         contatos[id] = telefone.replace(/\D/g, "");
         delete editandoContato[id];
         renderClientes();
-      } catch {
+      } catch (error) {
+        console.error("Erro ao salvar contato:", error);
         alert("Erro ao salvar contato.");
+      }
+    }
+
+    async function removerContato(id) {
+      const confirmar = confirm("Deseja realmente excluir o WhatsApp deste cliente?");
+      if (!confirmar) return;
+
+      try {
+        await fetchJson(API + "/api/clients/contatos/" + encodeURIComponent(id), {
+          method: "DELETE"
+        });
+
+        delete contatos[id];
+        delete editandoContato[id];
+        renderClientes();
+      } catch (error) {
+        console.error("Erro ao excluir contato:", error);
+        alert("Erro ao excluir contato.");
       }
     }
 
     function buildClientWhatsappLink(cliente, text) {
       const numero = contatos[cliente.id];
-
       if (!numero) {
         alert("Cadastre o WhatsApp do cliente primeiro.");
         return "#";
       }
-
       const numeroCompleto = numero.startsWith("55") ? numero : "55" + numero;
       return `https://wa.me/${numeroCompleto}?text=${encodeURIComponent(text)}`;
     }
@@ -1199,7 +698,6 @@ Equipe MS TV`;
 
     function cobrarLista(lista, tipo) {
       const clientesComNumero = lista.filter(cliente => contatos[cliente.id]);
-
       if (!clientesComNumero.length) {
         alert("Nenhum cliente com WhatsApp cadastrado nessa faixa.");
         return;
@@ -1207,22 +705,18 @@ Equipe MS TV`;
 
       clientesComNumero.forEach((cliente, index) => {
         const link = buildClientWhatsappLink(cliente, textoCobranca(cliente, tipo));
-        setTimeout(() => {
-          window.open(link, "_blank");
-        }, index * 300);
+        setTimeout(() => window.open(link, "_blank"), index * 300);
       });
     }
 
     function enviarPromocaoMassa() {
       const msg = document.getElementById("promoMsg").value.trim();
-
       if (!msg) {
         alert("Digite a mensagem da promoção.");
         return;
       }
 
       const clientesComNumero = clientes.filter(cliente => contatos[cliente.id]);
-
       if (!clientesComNumero.length) {
         alert("Nenhum cliente com WhatsApp cadastrado.");
         return;
@@ -1240,10 +734,7 @@ Aproveite agora e garanta o melhor do entretenimento com a MS TV.
 Equipe MS TV`;
 
         const link = buildClientWhatsappLink(cliente, text);
-
-        setTimeout(() => {
-          window.open(link, "_blank");
-        }, index * 250);
+        setTimeout(() => window.open(link, "_blank"), index * 250);
       });
     }
 
@@ -1265,7 +756,7 @@ Equipe MS TV`;
         const data = await fetchJson(API + "/api/clients/listas-historico");
         return data.listas || [];
       } catch (error) {
-        console.error("Erro ao carregar histórico de listas:", error);
+        console.error("Erro ao carregar histórico:", error);
         return [];
       }
     }
@@ -1329,78 +820,9 @@ Equipe MS TV`;
           </div>
         `;
       } catch (error) {
-        alert("Erro ao abrir resumo do mês.");
         console.error(error);
+        alert("Erro ao abrir resumo do mês.");
       }
-    }
-
-    async function renderListasHistorico() {
-      const listas = await carregarListasHistorico();
-
-      document.getElementById("app").innerHTML = `
-        <div class="topbar">
-          <div>
-            <h2>Lista de clientes</h2>
-            <p>Histórico mensal das listas importadas manualmente.</p>
-          </div>
-          <div class="top-actions">
-            <div class="welcome-user">Usuário: ${currentUser || "admin"}</div>
-            <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
-            <button class="btn btn-red" onclick="logout()">Sair</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3 style="margin-top:0">Meses disponíveis</h3>
-
-          ${
-            listas.length
-              ? `
-                <div class="actions-bar">
-                  ${listas.map(item => `
-                    <button class="btn btn-gray" onclick="abrirResumoMes('${item.mes}')">
-                      ${item.label}
-                    </button>
-                  `).join("")}
-                </div>
-
-                <div class="table-shell" style="margin-top:16px">
-                  <div class="table-wrap">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Mês</th>
-                          <th>Clientes</th>
-                          <th>Renovações</th>
-                          <th>Vencidos</th>
-                          <th>Testes</th>
-                          <th>Bruto</th>
-                          <th>Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        ${listas.map(item => `
-                          <tr>
-                            <td class="login-cell">${item.label}</td>
-                            <td>${item.resumo.totalClientes}</td>
-                            <td>${item.resumo.renovacoes}</td>
-                            <td>${item.resumo.vencidos}</td>
-                            <td>${item.resumo.testesGerados}</td>
-                            <td>R$ ${Number(item.resumo.dinheiroBruto || 0).toFixed(2).replace(".", ",")}</td>
-                            <td>
-                              <button class="mini-btn blue" onclick="abrirResumoMes('${item.mes}')">Abrir resumo</button>
-                            </td>
-                          </tr>
-                        `).join("")}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              `
-              : `<div class="empty">Nenhuma lista mensal foi importada ainda.</div>`
-          }
-        </div>
-      `;
     }
 
     function renderDashboard() {
@@ -1434,24 +856,16 @@ Equipe MS TV`;
           <div class="card"><div class="card-title">Receita bruta do mês</div><div class="card-value">R$ ${receitaBruta.toFixed(2).replace(".", ",")}</div></div>
         </section>
 
-        <section class="two-cols">
-          <div class="card">
-            <h3 style="margin-top:0">Cobranças por vencimento</h3>
-            <div class="actions-bar">
-              <button class="btn btn-green" onclick="cobrarLista(clientesPorDias(3), '3')">Cobrar em 3 dias (${em3})</button>
-              <button class="btn btn-green" onclick="cobrarLista(clientesPorDias(2), '2')">Cobrar em 2 dias (${em2})</button>
-              <button class="btn btn-green" onclick="cobrarLista(clientesPorDias(1), '1')">Cobrar em 1 dia (${em1})</button>
-              <button class="btn btn-red" onclick="cobrarLista(clientesPorDias(0), '0')">Cobrar hoje (${hoje})</button>
-            </div>
-            <p class="notice">Atualização agora recarrega a lista salva manualmente. Clientes pagos vão para o final da lista.</p>
+        <div class="card">
+          <h3 style="margin-top:0">Cobranças por vencimento</h3>
+          <div class="actions-bar">
+            <button class="btn btn-green" onclick="cobrarLista(clientesPorDias(3), '3')">Cobrar em 3 dias (${em3})</button>
+            <button class="btn btn-green" onclick="cobrarLista(clientesPorDias(2), '2')">Cobrar em 2 dias (${em2})</button>
+            <button class="btn btn-green" onclick="cobrarLista(clientesPorDias(1), '1')">Cobrar em 1 dia (${em1})</button>
+            <button class="btn btn-red" onclick="cobrarLista(clientesPorDias(0), '0')">Cobrar hoje (${hoje})</button>
           </div>
-
-          <div class="card">
-            <h3 style="margin-top:0">Sorteio do mês</h3>
-            <p class="muted">Participam todos os clientes marcados como pagos.</p>
-            <div class="small-card"><strong>Elegíveis no momento:</strong> ${clientesEmDiaParaSorteio().length}</div>
-          </div>
-        </section>
+          <p class="notice">Participam todos os clientes marcados como pagos no sorteio.</p>
+        </div>
       `;
     }
 
@@ -1516,25 +930,20 @@ Equipe MS TV`;
                               <div class="contact-card">
                                 <span class="contact-label">WhatsApp do cliente</span>
 
-                               ${
-  contatos[c.id] && !editandoContato[c.id]
-    ? `
-      <div class="contact-view">
-        <div class="saved-phone">${contatos[c.id]}</div>
-        <div class="action-buttons">
-          <button class="mini-btn gray" onclick="abrirEdicaoContato('${c.id}')">Editar</button>
-          <button class="mini-btn red" onclick="removerContato('${c.id}')">Excluir</button>
-        </div>
-      </div>
-    `
+                                ${
+                                  contatos[c.id] && !editandoContato[c.id]
+                                    ? `
+                                      <div class="contact-view">
+                                        <div class="saved-phone">${contatos[c.id]}</div>
+                                        <div class="action-buttons">
+                                          <button class="mini-btn gray" onclick="abrirEdicaoContato('${c.id}')">Editar</button>
+                                          <button class="mini-btn red" onclick="removerContato('${c.id}')">Excluir</button>
+                                        </div>
+                                      </div>
+                                    `
                                     : `
                                       <div class="contact-row">
-                                        <input
-                                          id="fone_${c.id}"
-                                          class="input-whatsapp"
-                                          placeholder="Ex: 62999999999"
-                                          value="${contatos[c.id] || ""}"
-                                        >
+                                        <input id="fone_${c.id}" class="input-whatsapp" placeholder="Ex: 62999999999" value="${contatos[c.id] || ""}">
                                         <button class="mini-btn green" onclick="salvarContato('${c.id}')">Salvar</button>
                                         ${
                                           contatos[c.id]
@@ -1727,13 +1136,13 @@ Equipe MS TV`;
         </div>
 
         <div class="import-box">
-          <div class="import-help">
+          <div class="small-card">
             <strong>Formato aceito:</strong><br><br>
             ID + Status + Usuário + Vencimento<br>
-            Linhas soltas como canais ou observações serão ignoradas.<br>
-            Exemplo:<br><br>
-            21945723 Expirada Douglas977 8 Abr 2026 23:59:59<br>
-            0/1
+            ou<br>
+            Status + Usuário + Vencimento<br>
+            ou<br>
+            Usuário + Vencimento
           </div>
 
           <textarea id="listaManual" placeholder="Cole aqui a lista bruta dos clientes..."></textarea>
@@ -1743,7 +1152,7 @@ Equipe MS TV`;
             <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
           </div>
 
-          <div id="importStatus" class="import-status"></div>
+          <div id="importStatus" class="result-box" style="display:none"></div>
         </div>
       `;
     }
@@ -1772,9 +1181,7 @@ Equipe MS TV`;
               ? `
                 <div class="actions-bar">
                   ${listas.map(item => `
-                    <button class="btn btn-gray" onclick="abrirResumoMes('${item.mes}')">
-                      ${item.label}
-                    </button>
+                    <button class="btn btn-gray" onclick="abrirResumoMes('${item.mes}')">${item.label}</button>
                   `).join("")}
                 </div>
 
@@ -1801,9 +1208,7 @@ Equipe MS TV`;
                             <td>${item.resumo.vencidos}</td>
                             <td>${item.resumo.testesGerados}</td>
                             <td>R$ ${Number(item.resumo.dinheiroBruto || 0).toFixed(2).replace(".", ",")}</td>
-                            <td>
-                              <button class="mini-btn blue" onclick="abrirResumoMes('${item.mes}')">Abrir resumo</button>
-                            </td>
+                            <td><button class="mini-btn blue" onclick="abrirResumoMes('${item.mes}')">Abrir resumo</button></td>
                           </tr>
                         `).join("")}
                       </tbody>
