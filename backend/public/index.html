@@ -744,10 +744,8 @@
 
     function formatDateDisplay(value) {
       if (!value) return "-";
-
       const brMatch = String(value).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
       if (brMatch) return value;
-
       return String(value);
     }
 
@@ -755,7 +753,6 @@
       const formatted = formatDateDisplay(dateStr);
       const match = formatted.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
       if (!match) return null;
-
       const [, dd, mm, yyyy] = match;
       return new Date(Number(yyyy), Number(mm) - 1, Number(dd), 12, 0, 0);
     }
@@ -939,6 +936,7 @@
             <button class="nav-btn ${screen === "promocao" ? "active" : ""}" onclick="changeScreen('promocao', this)">🎁 Promoção do dia</button>
             <button class="nav-btn ${screen === "sorteio" ? "active" : ""}" onclick="changeScreen('sorteio', this)">🎉 Sorteio do mês</button>
             <button class="nav-btn ${screen === "importar" ? "active" : ""}" onclick="changeScreen('importar', this)">📥 Importar lista manual</button>
+            <button class="nav-btn ${screen === "listas" ? "active" : ""}" onclick="changeScreen('listas', this)">🗂️ Lista de clientes</button>
 
             <div class="sidebar-footer">
               WhatsApp oficial da MS TV:<br>
@@ -1005,7 +1003,7 @@
         });
 
         statusBox.style.display = "block";
-        statusBox.textContent = `Lista processada com sucesso. ${data.total} clientes importados.`;
+        statusBox.textContent = `Lista processada com sucesso. ${data.total} clientes importados no mês ${data.mes}.`;
 
         await carregar();
         screen = "clientes";
@@ -1226,6 +1224,149 @@ Equipe MS TV`;
 
       const escolhido = elegiveis[Math.floor(Math.random() * elegiveis.length)];
       box.innerHTML = `GANHADOR DO MÊS<br><br>Cliente: <strong>${escolhido.login}</strong><br>Parabéns. Você ganhou 1 mês grátis na MS TV.`;
+    }
+
+    async function carregarListasHistorico() {
+      try {
+        const data = await fetchJson(API + "/api/clients/listas-historico");
+        return data.listas || [];
+      } catch (error) {
+        console.error("Erro ao carregar histórico de listas:", error);
+        return [];
+      }
+    }
+
+    async function abrirResumoMes(mes) {
+      try {
+        const data = await fetchJson(API + "/api/clients/listas-historico/" + mes);
+        const item = data.item;
+
+        document.getElementById("app").innerHTML = `
+          <div class="topbar">
+            <div>
+              <h2>Resumo do mês ${item.label}</h2>
+              <p>Dados da lista importada em ${new Date(item.dataImportacao).toLocaleString("pt-BR")}</p>
+            </div>
+            <div class="top-actions">
+              <div class="welcome-user">Usuário: ${currentUser || "admin"}</div>
+              <button class="btn btn-dark" onclick="renderListasHistorico()">Voltar</button>
+              <button class="btn btn-red" onclick="logout()">Sair</button>
+            </div>
+          </div>
+
+          <div class="grid cards">
+            <div class="card"><div class="card-title">Clientes</div><div class="card-value">${item.resumo.totalClientes}</div></div>
+            <div class="card"><div class="card-title">Renovações</div><div class="card-value">${item.resumo.renovacoes}</div></div>
+            <div class="card"><div class="card-title">Vencidos</div><div class="card-value">${item.resumo.vencidos}</div></div>
+            <div class="card"><div class="card-title">Testes</div><div class="card-value">${item.resumo.testesGerados}</div></div>
+            <div class="card"><div class="card-title">Dinheiro bruto</div><div class="card-value">R$ ${Number(item.resumo.dinheiroBruto || 0).toFixed(2).replace(".", ",")}</div></div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-top:0">Usuários da lista</h3>
+            <div class="table-shell">
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Usuário</th>
+                      <th>Vencimento</th>
+                      <th>Status</th>
+                      <th>Conexões</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${
+                      (item.clientes || []).length
+                        ? item.clientes.map(cliente => `
+                          <tr>
+                            <td class="login-cell">${cliente.login}</td>
+                            <td class="date-cell">${cliente.vencimento || "-"}</td>
+                            <td>${cliente.status}</td>
+                            <td class="conn-cell">${Number(cliente.conexoesAtuais || 0)}/${Number(cliente.maxConexoes || 0)}</td>
+                          </tr>
+                        `).join("")
+                        : `<tr><td colspan="4" class="empty">Nenhum cliente encontrado.</td></tr>`
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+      } catch (error) {
+        alert("Erro ao abrir resumo do mês.");
+        console.error(error);
+      }
+    }
+
+    async function renderListasHistorico() {
+      const listas = await carregarListasHistorico();
+
+      document.getElementById("app").innerHTML = `
+        <div class="topbar">
+          <div>
+            <h2>Lista de clientes</h2>
+            <p>Histórico mensal das listas importadas manualmente.</p>
+          </div>
+          <div class="top-actions">
+            <div class="welcome-user">Usuário: ${currentUser || "admin"}</div>
+            <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
+            <button class="btn btn-red" onclick="logout()">Sair</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-top:0">Meses disponíveis</h3>
+
+          ${
+            listas.length
+              ? `
+                <div class="actions-bar">
+                  ${listas.map(item => `
+                    <button class="btn btn-gray" onclick="abrirResumoMes('${item.mes}')">
+                      ${item.label}
+                    </button>
+                  `).join("")}
+                </div>
+
+                <div class="table-shell" style="margin-top:16px">
+                  <div class="table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Mês</th>
+                          <th>Clientes</th>
+                          <th>Renovações</th>
+                          <th>Vencidos</th>
+                          <th>Testes</th>
+                          <th>Bruto</th>
+                          <th>Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${listas.map(item => `
+                          <tr>
+                            <td class="login-cell">${item.label}</td>
+                            <td>${item.resumo.totalClientes}</td>
+                            <td>${item.resumo.renovacoes}</td>
+                            <td>${item.resumo.vencidos}</td>
+                            <td>${item.resumo.testesGerados}</td>
+                            <td>R$ ${Number(item.resumo.dinheiroBruto || 0).toFixed(2).replace(".", ",")}</td>
+                            <td>
+                              <button class="mini-btn blue" onclick="abrirResumoMes('${item.mes}')">Abrir resumo</button>
+                            </td>
+                          </tr>
+                        `).join("")}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              `
+              : `<div class="empty">Nenhuma lista mensal foi importada ainda.</div>`
+          }
+        </div>
+      `;
     }
 
     function renderDashboard() {
@@ -1570,6 +1711,75 @@ Equipe MS TV`;
       `;
     }
 
+    async function renderListasHistorico() {
+      const listas = await carregarListasHistorico();
+
+      document.getElementById("app").innerHTML = `
+        <div class="topbar">
+          <div>
+            <h2>Lista de clientes</h2>
+            <p>Histórico mensal das listas importadas manualmente.</p>
+          </div>
+          <div class="top-actions">
+            <div class="welcome-user">Usuário: ${currentUser || "admin"}</div>
+            <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
+            <button class="btn btn-red" onclick="logout()">Sair</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-top:0">Meses disponíveis</h3>
+
+          ${
+            listas.length
+              ? `
+                <div class="actions-bar">
+                  ${listas.map(item => `
+                    <button class="btn btn-gray" onclick="abrirResumoMes('${item.mes}')">
+                      ${item.label}
+                    </button>
+                  `).join("")}
+                </div>
+
+                <div class="table-shell" style="margin-top:16px">
+                  <div class="table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Mês</th>
+                          <th>Clientes</th>
+                          <th>Renovações</th>
+                          <th>Vencidos</th>
+                          <th>Testes</th>
+                          <th>Bruto</th>
+                          <th>Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${listas.map(item => `
+                          <tr>
+                            <td class="login-cell">${item.label}</td>
+                            <td>${item.resumo.totalClientes}</td>
+                            <td>${item.resumo.renovacoes}</td>
+                            <td>${item.resumo.vencidos}</td>
+                            <td>${item.resumo.testesGerados}</td>
+                            <td>R$ ${Number(item.resumo.dinheiroBruto || 0).toFixed(2).replace(".", ",")}</td>
+                            <td>
+                              <button class="mini-btn blue" onclick="abrirResumoMes('${item.mes}')">Abrir resumo</button>
+                            </td>
+                          </tr>
+                        `).join("")}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              `
+              : `<div class="empty">Nenhuma lista mensal foi importada ainda.</div>`
+          }
+        </div>
+      `;
+    }
+
     function render() {
       if (screen === "dashboard") return renderDashboard();
       if (screen === "clientes") return renderClientes();
@@ -1578,6 +1788,7 @@ Equipe MS TV`;
       if (screen === "promocao") return renderPromocao();
       if (screen === "sorteio") return renderSorteio();
       if (screen === "importar") return renderImportar();
+      if (screen === "listas") return renderListasHistorico();
     }
 
     checkSession();
