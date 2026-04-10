@@ -23,7 +23,8 @@ function ensureDataFile() {
           contatos: {},
           pagos: [],
           historico: [],
-          sessions: []
+          sessions: [],
+          listasHistorico: []
         },
         null,
         2
@@ -45,7 +46,8 @@ function readData() {
       contatos: parsed.contatos && typeof parsed.contatos === "object" ? parsed.contatos : {},
       pagos: Array.isArray(parsed.pagos) ? parsed.pagos : [],
       historico: Array.isArray(parsed.historico) ? parsed.historico : [],
-      sessions: Array.isArray(parsed.sessions) ? parsed.sessions : []
+      sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
+      listasHistorico: Array.isArray(parsed.listasHistorico) ? parsed.listasHistorico : []
     };
   } catch {
     return {
@@ -53,7 +55,8 @@ function readData() {
       contatos: {},
       pagos: [],
       historico: [],
-      sessions: []
+      sessions: [],
+      listasHistorico: []
     };
   }
 }
@@ -69,7 +72,8 @@ function writeData(data) {
         contatos: data.contatos && typeof data.contatos === "object" ? data.contatos : {},
         pagos: Array.isArray(data.pagos) ? data.pagos : [],
         historico: Array.isArray(data.historico) ? data.historico : [],
-        sessions: Array.isArray(data.sessions) ? data.sessions : []
+        sessions: Array.isArray(data.sessions) ? data.sessions : [],
+        listasHistorico: Array.isArray(data.listasHistorico) ? data.listasHistorico : []
       },
       null,
       2
@@ -86,6 +90,7 @@ export const store = {
   pagos: new Set(persisted.pagos),
   historico: persisted.historico,
   sessions: persisted.sessions,
+  listasHistorico: persisted.listasHistorico,
   telefoneMsTv: "62991133110"
 };
 
@@ -95,7 +100,8 @@ export function saveStore() {
     contatos: store.contatos,
     pagos: [...store.pagos],
     historico: store.historico,
-    sessions: store.sessions
+    sessions: store.sessions,
+    listasHistorico: store.listasHistorico
   });
 }
 
