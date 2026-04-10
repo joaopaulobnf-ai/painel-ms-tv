@@ -48,8 +48,8 @@ function isPastDate(dateStr) {
 
 function formatDateBRFromSlash(raw) {
   const clean = String(raw || "").trim();
-  const match = clean.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
 
+  const match = clean.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
   if (!match) return "";
 
   const [, dd, mm, yyyy] = match;
@@ -84,11 +84,15 @@ function sanitizeLogin(login) {
     .trim();
 }
 
-function createFallbackId(login, vencimento, index) {
+function createSafeId(login, vencimento, index) {
   return `${login}-${vencimento}-${index}`
     .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/\s+/g, "-")
-    .replace(/[^\w/-]+/g, "");
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function normalizeStatusByDate(baseStatus, vencimento, teste) {
@@ -128,19 +132,19 @@ function parseLinhaModeloAntigo(line, index) {
   const statusInfo = buildStatusInfo(statusBruto, usuarioBruto, vencimento);
 
   return {
-    id: id || createFallbackId(login, vencimento, index),
+    id: String(id).replace(/[^\d]/g, "") || createSafeId(login, vencimento, index),
     login,
     vencimento,
     ...statusInfo
   };
 }
 
-function parseLinhaModeloNovo(line, index) {
+function parseLinhaModeloNovoComStatus(line, index) {
   const clean = String(line || "").replace(/\r/g, "").trim();
   if (!clean) return null;
 
   const match = clean.match(
-    /^(Ativa|Expirada)\s+(.+?)\s+(\d{2}\/\d{2}\/\d{4},?\s+\d{2}:\d{2}:\d{2})$/i
+    /^(Ativa|Expirada)\s+(.+?)\s+(\d{2}\/\d{2}\/\d{4},?\s+\d{2}:\d{2}(?::\d{2})?)$/i
   );
 
   if (!match) return null;
@@ -151,7 +155,30 @@ function parseLinhaModeloNovo(line, index) {
   const statusInfo = buildStatusInfo(statusBruto, usuarioBruto, vencimento);
 
   return {
-    id: createFallbackId(login, vencimento, index),
+    id: createSafeId(login, vencimento, index),
+    login,
+    vencimento,
+    ...statusInfo
+  };
+}
+
+function parseLinhaModeloNovoSemStatus(line, index) {
+  const clean = String(line || "").replace(/\r/g, "").trim();
+  if (!clean) return null;
+
+  const match = clean.match(
+    /^(.+?)\s+(\d{2}\/\d{2}\/\d{4},?\s+\d{2}:\d{2}(?::\d{2})?)$/
+  );
+
+  if (!match) return null;
+
+  const [, usuarioBruto, vencimentoBruto] = match;
+  const login = sanitizeLogin(usuarioBruto);
+  const vencimento = formatDateBRFromSlash(vencimentoBruto);
+  const statusInfo = buildStatusInfo("Ativa", usuarioBruto, vencimento);
+
+  return {
+    id: createSafeId(login, vencimento, index),
     login,
     vencimento,
     ...statusInfo
@@ -159,7 +186,11 @@ function parseLinhaModeloNovo(line, index) {
 }
 
 function parseLinhaPrincipal(line, index) {
-  return parseLinhaModeloAntigo(line, index) || parseLinhaModeloNovo(line, index);
+  return (
+    parseLinhaModeloAntigo(line, index) ||
+    parseLinhaModeloNovoComStatus(line, index) ||
+    parseLinhaModeloNovoSemStatus(line, index)
+  );
 }
 
 function recalculateClientStatus(cliente) {
@@ -422,7 +453,6 @@ router.get("/listas-historico", (req, res) => {
 
 router.get("/listas-historico/:mes/:ano?", (req, res) => {
   const { mes, ano } = req.params;
-
   const requestedKey = ano ? `${mes}-${ano}` : String(mes || "").replace("/", "-");
 
   const item = (store.listasHistorico || []).find(entry => {
@@ -450,41 +480,59 @@ router.get("/listas-historico/:mes/:ano?", (req, res) => {
 });
 
 router.post("/pagar/:id", (req, res) => {
-  const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-  if (!store.pagos.has(id)) {
-    store.pagos.add(id);
-    store.historico.push({
-      id,
-      acao: "marcou_pago",
-      data: new Date().toISOString()
+    if (!store.pagos.has(id)) {
+      store.pagos.add(id);
+      store.historico.push({
+        id,
+        acao: "marcou_pago",
+        data: new Date().toISOString()
+      });
+      saveStore();
+    }
+
+    res.json({
+      ok: true,
+      pagos: [...store.pagos]
     });
-    saveStore();
+  } catch (error) {
+    console.error("Erro em /pagar/:id:", error);
+    res.status(500).json({
+      ok: false,
+      message: "Erro ao marcar como pago.",
+      error: error.message
+    });
   }
-
-  res.json({
-    ok: true,
-    pagos: [...store.pagos]
-  });
 });
 
 router.post("/desmarcar-pago/:id", (req, res) => {
-  const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-  if (store.pagos.has(id)) {
-    store.pagos.delete(id);
-    store.historico.push({
-      id,
-      acao: "desmarcou_pago",
-      data: new Date().toISOString()
+    if (store.pagos.has(id)) {
+      store.pagos.delete(id);
+      store.historico.push({
+        id,
+        acao: "desmarcou_pago",
+        data: new Date().toISOString()
+      });
+      saveStore();
+    }
+
+    res.json({
+      ok: true,
+      pagos: [...store.pagos]
     });
-    saveStore();
+  } catch (error) {
+    console.error("Erro em /desmarcar-pago/:id:", error);
+    res.status(500).json({
+      ok: false,
+      message: "Erro ao desmarcar pagamento.",
+      error: error.message
+    });
   }
-
-  res.json({
-    ok: true,
-    pagos: [...store.pagos]
-  });
 });
 
 router.get("/pagos", (req, res) => {
@@ -500,47 +548,65 @@ router.get("/contatos", (req, res) => {
 });
 
 router.post("/contatos/:id", (req, res) => {
-  const { id } = req.params;
-  const { telefone } = req.body;
+  try {
+    const { id } = req.params;
+    const { telefone } = req.body;
 
-  if (!telefone) {
-    return res.status(400).json({
+    if (!telefone) {
+      return res.status(400).json({
+        ok: false,
+        message: "Telefone é obrigatório"
+      });
+    }
+
+    const numeroLimpo = String(telefone).replace(/\D/g, "");
+
+    if (numeroLimpo.length < 10) {
+      return res.status(400).json({
+        ok: false,
+        message: "Telefone inválido"
+      });
+    }
+
+    store.contatos[id] = numeroLimpo;
+    saveStore();
+
+    res.json({
+      ok: true,
+      id,
+      telefone: numeroLimpo
+    });
+  } catch (error) {
+    console.error("Erro em /contatos/:id:", error);
+    res.status(500).json({
       ok: false,
-      message: "Telefone é obrigatório"
+      message: "Erro ao salvar contato.",
+      error: error.message
     });
   }
-
-  const numeroLimpo = String(telefone).replace(/\D/g, "");
-
-  if (numeroLimpo.length < 10) {
-    return res.status(400).json({
-      ok: false,
-      message: "Telefone inválido"
-    });
-  }
-
-  store.contatos[id] = numeroLimpo;
-  saveStore();
-
-  res.json({
-    ok: true,
-    id,
-    telefone: numeroLimpo
-  });
 });
 
 router.delete("/contatos/:id", (req, res) => {
-  const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-  if (store.contatos[id]) {
-    delete store.contatos[id];
-    saveStore();
+    if (store.contatos[id]) {
+      delete store.contatos[id];
+      saveStore();
+    }
+
+    res.json({
+      ok: true,
+      contatos: store.contatos
+    });
+  } catch (error) {
+    console.error("Erro em DELETE /contatos/:id:", error);
+    res.status(500).json({
+      ok: false,
+      message: "Erro ao remover contato.",
+      error: error.message
+    });
   }
-
-  res.json({
-    ok: true,
-    contatos: store.contatos
-  });
 });
 
 export default router;
