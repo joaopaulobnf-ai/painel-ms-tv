@@ -588,6 +588,27 @@ router.post("/contatos/:id", (req, res) => {
 
 router.delete("/contatos/:id", (req, res) => {
   try {
+    const id = req.params.id;
+
+    if (store.contatos[id]) {
+      delete store.contatos[id];
+      saveStore();
+    }
+
+    res.json({
+      ok: true,
+      contatos: store.contatos
+    });
+  } catch (error) {
+    console.error("Erro em DELETE /contatos/:id:", error);
+    res.status(500).json({
+      ok: false,
+      message: "Erro ao remover contato.",
+      error: error.message
+    });
+  }
+});
+  try {
     const id = decodeURIComponent(req.params.id);
 
     if (store.contatos[id]) {
