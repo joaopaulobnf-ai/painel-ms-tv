@@ -832,8 +832,8 @@
     }
 
     function clientesEmDiaParaSorteio() {
-      return clientes.filter(c => isPago(c.id) && c.status !== "vencido");
-    }
+  return clientes.filter(c => isPago(c.id));
+}
 
     async function checkSession() {
       const token = localStorage.getItem("ms_tv_token");
