@@ -22,6 +22,7 @@ function ensureDataFile() {
           clientes: [],
           contatos: {},
           pagos: [],
+          renovados: [],
           historico: [],
           sessions: [],
           listasHistorico: []
@@ -45,6 +46,7 @@ function readData() {
       clientes: Array.isArray(parsed.clientes) ? parsed.clientes : [],
       contatos: parsed.contatos && typeof parsed.contatos === "object" ? parsed.contatos : {},
       pagos: Array.isArray(parsed.pagos) ? parsed.pagos : [],
+      renovados: Array.isArray(parsed.renovados) ? parsed.renovados : [],
       historico: Array.isArray(parsed.historico) ? parsed.historico : [],
       sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
       listasHistorico: Array.isArray(parsed.listasHistorico) ? parsed.listasHistorico : []
@@ -54,6 +56,7 @@ function readData() {
       clientes: [],
       contatos: {},
       pagos: [],
+      renovados: [],
       historico: [],
       sessions: [],
       listasHistorico: []
@@ -71,6 +74,7 @@ function writeData(data) {
         clientes: Array.isArray(data.clientes) ? data.clientes : [],
         contatos: data.contatos && typeof data.contatos === "object" ? data.contatos : {},
         pagos: Array.isArray(data.pagos) ? data.pagos : [],
+        renovados: Array.isArray(data.renovados) ? data.renovados : [],
         historico: Array.isArray(data.historico) ? data.historico : [],
         sessions: Array.isArray(data.sessions) ? data.sessions : [],
         listasHistorico: Array.isArray(data.listasHistorico) ? data.listasHistorico : []
@@ -87,7 +91,8 @@ const persisted = readData();
 export const store = {
   clientes: persisted.clientes,
   contatos: persisted.contatos,
-  pagos: new Set(persisted.pagos),
+  pagos: persisted.pagos,
+  renovados: persisted.renovados,
   historico: persisted.historico,
   sessions: persisted.sessions,
   listasHistorico: persisted.listasHistorico,
@@ -98,7 +103,8 @@ export function saveStore() {
   writeData({
     clientes: store.clientes,
     contatos: store.contatos,
-    pagos: [...store.pagos],
+    pagos: store.pagos,
+    renovados: store.renovados,
     historico: store.historico,
     sessions: store.sessions,
     listasHistorico: store.listasHistorico
