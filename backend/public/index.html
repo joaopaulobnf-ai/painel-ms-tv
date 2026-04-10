@@ -1498,14 +1498,17 @@ Equipe MS TV`;
                               <div class="contact-card">
                                 <span class="contact-label">WhatsApp do cliente</span>
 
-                                ${
-                                  contatos[c.id] && !editandoContato[c.id]
-                                    ? `
-                                      <div class="contact-view">
-                                        <div class="saved-phone">${contatos[c.id]}</div>
-                                        <button class="mini-btn gray" onclick="abrirEdicaoContato('${c.id}')">Editar</button>
-                                      </div>
-                                    `
+                               ${
+  contatos[c.id] && !editandoContato[c.id]
+    ? `
+      <div class="contact-view">
+        <div class="saved-phone">${contatos[c.id]}</div>
+        <div class="action-buttons">
+          <button class="mini-btn gray" onclick="abrirEdicaoContato('${c.id}')">Editar</button>
+          <button class="mini-btn red" onclick="removerContato('${c.id}')">Excluir</button>
+        </div>
+      </div>
+    `
                                     : `
                                       <div class="contact-row">
                                         <input
