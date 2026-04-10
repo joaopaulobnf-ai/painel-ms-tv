@@ -3,5 +3,6 @@
   "contatos": {},
   "pagos": [],
   "historico": [],
-  "sessions": []
+  "sessions": [],
+  "listasHistorico": []
 }
