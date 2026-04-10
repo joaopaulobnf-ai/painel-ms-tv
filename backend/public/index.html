@@ -1061,20 +1061,22 @@
       renderClientes();
     }
 
-    async function salvarContato(id) {
-      async function removerContato(id) {
+    async function removerContato(id) {
   const confirmar = confirm("Deseja realmente excluir o WhatsApp deste cliente?");
   if (!confirmar) return;
 
   try {
-    await fetchJson(API + "/api/clients/contatos/" + encodeURIComponent(id), {
+    const safeId = decodeURIComponent(id);
+
+    await fetchJson(API + "/api/clients/contatos/" + encodeURIComponent(safeId), {
       method: "DELETE"
     });
 
-    delete contatos[id];
-    delete editandoContato[id];
+    delete contatos[safeId];
+    delete editandoContato[safeId];
     renderClientes();
-  } catch {
+  } catch (error) {
+    console.error("Erro ao excluir contato:", error);
     alert("Erro ao excluir contato.");
   }
 }
