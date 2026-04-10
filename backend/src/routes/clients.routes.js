@@ -588,7 +588,7 @@ router.post("/contatos/:id", (req, res) => {
 
 router.delete("/contatos/:id", (req, res) => {
   try {
-    const { id } = req.params;
+    const id = decodeURIComponent(req.params.id);
 
     if (store.contatos[id]) {
       delete store.contatos[id];
