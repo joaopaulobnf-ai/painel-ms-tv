@@ -21,6 +21,7 @@ function ensureDataFile() {
         {
           clientes: [],
           contatos: {},
+          observacoes: {},
           pagos: [],
           renovados: [],
           historico: [],
@@ -45,6 +46,7 @@ function readData() {
     return {
       clientes: Array.isArray(parsed.clientes) ? parsed.clientes : [],
       contatos: parsed.contatos && typeof parsed.contatos === "object" ? parsed.contatos : {},
+      observacoes: parsed.observacoes && typeof parsed.observacoes === "object" ? parsed.observacoes : {},
       pagos: Array.isArray(parsed.pagos) ? parsed.pagos : [],
       renovados: Array.isArray(parsed.renovados) ? parsed.renovados : [],
       historico: Array.isArray(parsed.historico) ? parsed.historico : [],
@@ -55,6 +57,7 @@ function readData() {
     return {
       clientes: [],
       contatos: {},
+      observacoes: {},
       pagos: [],
       renovados: [],
       historico: [],
@@ -73,6 +76,7 @@ function writeData(data) {
       {
         clientes: Array.isArray(data.clientes) ? data.clientes : [],
         contatos: data.contatos && typeof data.contatos === "object" ? data.contatos : {},
+        observacoes: data.observacoes && typeof data.observacoes === "object" ? data.observacoes : {},
         pagos: Array.isArray(data.pagos) ? data.pagos : [],
         renovados: Array.isArray(data.renovados) ? data.renovados : [],
         historico: Array.isArray(data.historico) ? data.historico : [],
@@ -91,6 +95,7 @@ const persisted = readData();
 export const store = {
   clientes: persisted.clientes,
   contatos: persisted.contatos,
+  observacoes: persisted.observacoes,
   pagos: persisted.pagos,
   renovados: persisted.renovados,
   historico: persisted.historico,
@@ -103,6 +108,7 @@ export function saveStore() {
   writeData({
     clientes: store.clientes,
     contatos: store.contatos,
+    observacoes: store.observacoes,
     pagos: store.pagos,
     renovados: store.renovados,
     historico: store.historico,
