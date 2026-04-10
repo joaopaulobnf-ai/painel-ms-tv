@@ -3,21 +3,6 @@ import { store, saveStore } from "../store.js";
 
 const router = express.Router();
 
-const MONTHS = {
-  jan: "01",
-  fev: "02",
-  mar: "03",
-  abr: "04",
-  mai: "05",
-  jun: "06",
-  jul: "07",
-  ago: "08",
-  set: "09",
-  out: "10",
-  nov: "11",
-  dez: "12"
-};
-
 function parseConnections(text = "") {
   const match = String(text).match(/(\d+)\s*\/\s*(\d+)/);
   return {
@@ -26,7 +11,30 @@ function parseConnections(text = "") {
   };
 }
 
-function parseVencimento(rawDate) {
+function formatDateBRFromSlash(raw) {
+  const clean = String(raw || "").trim();
+  const match = clean.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (!match) return "";
+  const [, dd, mm, yyyy] = match;
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+function formatDateBRFromText(rawDate) {
+  const MONTHS = {
+    jan: "01",
+    fev: "02",
+    mar: "03",
+    abr: "04",
+    mai: "05",
+    jun: "06",
+    jul: "07",
+    ago: "08",
+    set: "09",
+    out: "10",
+    nov: "11",
+    dez: "12"
+  };
+
   const clean = String(rawDate || "").replace(/\s+/g, " ").trim();
 
   const match = clean.match(
@@ -60,7 +68,7 @@ function normalizarStatus(statusBruto, usuarioBruto) {
     };
   }
 
-  if (/expirada/i.test(statusBruto)) {
+  if (/expirada|vencida|vencido/i.test(statusBruto)) {
     return {
       status: "vencido",
       teste: false,
@@ -77,7 +85,44 @@ function normalizarStatus(statusBruto, usuarioBruto) {
   };
 }
 
-function parseLinhaPrincipal(line) {
+function sanitizeLogin(login) {
+  return String(login || "")
+    .replace(/\s*\(teste\)\s*/gi, "")
+    .trim();
+}
+
+function createFallbackId(login, vencimento, index) {
+  return `${login}-${vencimento}-${index}`
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w/-]+/g, "");
+}
+
+function parseLinhaModeloNovo(line, index) {
+  const clean = String(line || "").replace(/\r/g, "").trim();
+  if (!clean) return null;
+
+  const match = clean.match(
+    /^(Ativa|Expirada)\s+(.+?)\s+(\d{2}\/\d{2}\/\d{4},?\s+\d{2}:\d{2}:\d{2})$/i
+  );
+
+  if (!match) return null;
+
+  const [, statusBruto, usuarioBruto, vencimentoBruto] = match;
+
+  const login = sanitizeLogin(usuarioBruto);
+  const vencimento = formatDateBRFromSlash(vencimentoBruto);
+  const statusInfo = normalizarStatus(statusBruto, usuarioBruto);
+
+  return {
+    id: createFallbackId(login, vencimento, index),
+    login,
+    vencimento,
+    ...statusInfo
+  };
+}
+
+function parseLinhaModeloAntigo(line, index) {
   const clean = String(line || "").replace(/\r/g, "").trim();
   if (!clean) return null;
   if (!/^\d+/.test(clean)) return null;
@@ -90,16 +135,20 @@ function parseLinhaPrincipal(line) {
 
   const [, id, statusBruto, usuarioBruto, vencimentoBruto] = principalMatch;
 
-  const usuario = usuarioBruto.replace(/\s*\(teste\)\s*/i, "").trim();
-  const vencimento = parseVencimento(vencimentoBruto);
+  const login = sanitizeLogin(usuarioBruto);
+  const vencimento = formatDateBRFromText(vencimentoBruto);
   const statusInfo = normalizarStatus(statusBruto, usuarioBruto);
 
   return {
     id,
-    login: usuario,
+    login,
     vencimento,
     ...statusInfo
   };
+}
+
+function parseLinhaPrincipal(line, index) {
+  return parseLinhaModeloAntigo(line, index) || parseLinhaModeloNovo(line, index);
 }
 
 function parseListaManual(texto) {
@@ -111,8 +160,9 @@ function parseListaManual(texto) {
   const clientes = [];
   let ultimoCliente = null;
 
-  for (const line of lines) {
-    const principal = parseLinhaPrincipal(line);
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    const principal = parseLinhaPrincipal(line, i);
 
     if (principal) {
       ultimoCliente = {
@@ -207,69 +257,78 @@ router.get("/sync", (req, res) => {
 });
 
 router.post("/importar-lista", (req, res) => {
-  const { lista } = req.body || {};
+  try {
+    const { lista } = req.body || {};
 
-  if (!lista || !String(lista).trim()) {
-    return res.status(400).json({
-      ok: false,
-      message: "Cole a lista manual antes de processar."
-    });
-  }
-
-  const novosClientes = parseListaManual(lista);
-
-  if (!novosClientes.length) {
-    return res.status(400).json({
-      ok: false,
-      message: "Nenhum cliente válido foi identificado na lista."
-    });
-  }
-
-  const idsNovos = new Set(novosClientes.map(cliente => cliente.id));
-
-  store.clientes = novosClientes;
-  store.pagos = new Set([...store.pagos].filter(id => idsNovos.has(id)));
-
-  Object.keys(store.contatos).forEach(id => {
-    if (!idsNovos.has(id)) {
-      delete store.contatos[id];
+    if (!lista || !String(lista).trim()) {
+      return res.status(400).json({
+        ok: false,
+        message: "Cole a lista manual antes de processar."
+      });
     }
-  });
 
-  if (!Array.isArray(store.listasHistorico)) {
-    store.listasHistorico = [];
+    const novosClientes = parseListaManual(lista);
+
+    if (!novosClientes.length) {
+      return res.status(400).json({
+        ok: false,
+        message: "Nenhum cliente válido foi identificado na lista."
+      });
+    }
+
+    const idsNovos = new Set(novosClientes.map(cliente => cliente.id));
+
+    store.clientes = novosClientes;
+    store.pagos = new Set([...store.pagos].filter(id => idsNovos.has(id)));
+
+    Object.keys(store.contatos).forEach(id => {
+      if (!idsNovos.has(id)) {
+        delete store.contatos[id];
+      }
+    });
+
+    if (!Array.isArray(store.listasHistorico)) {
+      store.listasHistorico = [];
+    }
+
+    const mesRef = obterMesReferencia(novosClientes);
+    const resumo = montarResumoMensal(novosClientes);
+
+    const entradaHistorico = {
+      id: String(Date.now()),
+      mes: mesRef.chave,
+      label: mesRef.label,
+      dataImportacao: new Date().toISOString(),
+      resumo,
+      clientes: novosClientes
+    };
+
+    store.listasHistorico = store.listasHistorico.filter(item => item.mes !== mesRef.chave);
+    store.listasHistorico.unshift(entradaHistorico);
+
+    store.historico.push({
+      acao: "importou_lista_manual",
+      total: novosClientes.length,
+      mes: mesRef.chave,
+      data: new Date().toISOString()
+    });
+
+    saveStore();
+
+    res.json({
+      ok: true,
+      total: store.clientes.length,
+      clients: store.clientes,
+      mes: mesRef.chave
+    });
+  } catch (error) {
+    console.error("Erro em /importar-lista:", error);
+    res.status(500).json({
+      ok: false,
+      message: "Erro interno ao processar a lista.",
+      error: error.message
+    });
   }
-
-  const mesRef = obterMesReferencia(novosClientes);
-  const resumo = montarResumoMensal(novosClientes);
-
-  const entradaHistorico = {
-    id: String(Date.now()),
-    mes: mesRef.chave,
-    label: mesRef.label,
-    dataImportacao: new Date().toISOString(),
-    resumo,
-    clientes: novosClientes
-  };
-
-  store.listasHistorico = store.listasHistorico.filter(item => item.mes !== mesRef.chave);
-  store.listasHistorico.unshift(entradaHistorico);
-
-  store.historico.push({
-    acao: "importou_lista_manual",
-    total: novosClientes.length,
-    mes: mesRef.chave,
-    data: new Date().toISOString()
-  });
-
-  saveStore();
-
-  res.json({
-    ok: true,
-    total: store.clientes.length,
-    clients: store.clientes,
-    mes: mesRef.chave
-  });
 });
 
 router.post("/limpar-lista", (req, res) => {
@@ -292,7 +351,7 @@ router.post("/limpar-lista", (req, res) => {
 router.get("/listas-historico", (req, res) => {
   res.json({
     ok: true,
-    listas: store.listasHistorico.map(item => ({
+    listas: (store.listasHistorico || []).map(item => ({
       id: item.id,
       mes: item.mes,
       label: item.label,
@@ -304,7 +363,7 @@ router.get("/listas-historico", (req, res) => {
 
 router.get("/listas-historico/:mes", (req, res) => {
   const { mes } = req.params;
-  const item = store.listasHistorico.find(entry => entry.mes === mes);
+  const item = (store.listasHistorico || []).find(entry => entry.mes === mes);
 
   if (!item) {
     return res.status(404).json({
