@@ -236,6 +236,10 @@ router.post("/importar-lista", (req, res) => {
     }
   });
 
+  if (!Array.isArray(store.listasHistorico)) {
+    store.listasHistorico = [];
+  }
+
   const mesRef = obterMesReferencia(novosClientes);
   const resumo = montarResumoMensal(novosClientes);
 
