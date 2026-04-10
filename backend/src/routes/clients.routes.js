@@ -48,8 +48,8 @@ function isPastDate(dateStr) {
 
 function formatDateBRFromSlash(raw) {
   const clean = String(raw || "").trim();
-
   const match = clean.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+
   if (!match) return "";
 
   const [, dd, mm, yyyy] = match;
@@ -481,7 +481,7 @@ router.get("/listas-historico/:mes/:ano?", (req, res) => {
 
 router.post("/pagar/:id", (req, res) => {
   try {
-    const { id } = req.params;
+    const id = decodeURIComponent(req.params.id);
 
     if (!store.pagos.has(id)) {
       store.pagos.add(id);
@@ -509,7 +509,7 @@ router.post("/pagar/:id", (req, res) => {
 
 router.post("/desmarcar-pago/:id", (req, res) => {
   try {
-    const { id } = req.params;
+    const id = decodeURIComponent(req.params.id);
 
     if (store.pagos.has(id)) {
       store.pagos.delete(id);
@@ -549,7 +549,7 @@ router.get("/contatos", (req, res) => {
 
 router.post("/contatos/:id", (req, res) => {
   try {
-    const { id } = req.params;
+    const id = decodeURIComponent(req.params.id);
     const { telefone } = req.body;
 
     if (!telefone) {
@@ -587,27 +587,6 @@ router.post("/contatos/:id", (req, res) => {
 });
 
 router.delete("/contatos/:id", (req, res) => {
-  try {
-    const id = req.params.id;
-
-    if (store.contatos[id]) {
-      delete store.contatos[id];
-      saveStore();
-    }
-
-    res.json({
-      ok: true,
-      contatos: store.contatos
-    });
-  } catch (error) {
-    console.error("Erro em DELETE /contatos/:id:", error);
-    res.status(500).json({
-      ok: false,
-      message: "Erro ao remover contato.",
-      error: error.message
-    });
-  }
-});
   try {
     const id = decodeURIComponent(req.params.id);
 
