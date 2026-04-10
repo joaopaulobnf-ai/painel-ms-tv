@@ -29,9 +29,7 @@ function parseConnections(text = "") {
 function parseDateBR(dateStr) {
   const clean = String(dateStr || "").trim();
   const match = clean.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-
   if (!match) return null;
-
   const [, dd, mm, yyyy] = match;
   return new Date(Number(yyyy), Number(mm) - 1, Number(dd), 12, 0, 0);
 }
@@ -358,7 +356,8 @@ router.post("/importar-lista", (req, res) => {
     const idsNovos = new Set(novosClientes.map(cliente => cliente.id));
 
     store.clientes = novosClientes;
-    store.pagos = new Set([...store.pagos].filter(id => idsNovos.has(id)));
+    store.pagos = store.pagos.filter(id => idsNovos.has(id));
+    store.renovados = store.renovados.filter(id => idsNovos.has(id));
 
     Object.keys(store.contatos).forEach(id => {
       if (!idsNovos.has(id)) {
@@ -416,7 +415,8 @@ router.post("/importar-lista", (req, res) => {
 
 router.post("/limpar-lista", (req, res) => {
   store.clientes = [];
-  store.pagos = new Set();
+  store.pagos = [];
+  store.renovados = [];
   store.contatos = {};
 
   store.historico.push({
@@ -479,23 +479,31 @@ router.get("/listas-historico/:mes/:ano?", (req, res) => {
   });
 });
 
+router.get("/pagos", (req, res) => {
+  res.json(store.pagos || []);
+});
+
 router.post("/pagar/:id", (req, res) => {
   try {
     const id = decodeURIComponent(req.params.id);
 
-    if (!store.pagos.has(id)) {
-      store.pagos.add(id);
-      store.historico.push({
-        id,
-        acao: "marcou_pago",
-        data: new Date().toISOString()
-      });
-      saveStore();
+    if (!store.pagos.includes(id)) {
+      store.pagos.push(id);
     }
+
+    store.renovados = store.renovados.filter(item => item !== id);
+
+    store.historico.push({
+      id,
+      acao: "marcou_pago",
+      data: new Date().toISOString()
+    });
+
+    saveStore();
 
     res.json({
       ok: true,
-      pagos: [...store.pagos]
+      pagos: store.pagos
     });
   } catch (error) {
     console.error("Erro em /pagar/:id:", error);
@@ -511,19 +519,19 @@ router.post("/desmarcar-pago/:id", (req, res) => {
   try {
     const id = decodeURIComponent(req.params.id);
 
-    if (store.pagos.has(id)) {
-      store.pagos.delete(id);
-      store.historico.push({
-        id,
-        acao: "desmarcou_pago",
-        data: new Date().toISOString()
-      });
-      saveStore();
-    }
+    store.pagos = store.pagos.filter(item => item !== id);
+
+    store.historico.push({
+      id,
+      acao: "desmarcou_pago",
+      data: new Date().toISOString()
+    });
+
+    saveStore();
 
     res.json({
       ok: true,
-      pagos: [...store.pagos]
+      pagos: store.pagos
     });
   } catch (error) {
     console.error("Erro em /desmarcar-pago/:id:", error);
@@ -535,8 +543,81 @@ router.post("/desmarcar-pago/:id", (req, res) => {
   }
 });
 
-router.get("/pagos", (req, res) => {
-  res.json([...store.pagos]);
+router.get("/renovados", (req, res) => {
+  if (!store.renovados) {
+    store.renovados = [];
+    saveStore();
+  }
+
+  res.json(store.renovados);
+});
+
+router.post("/renovado/:id", (req, res) => {
+  try {
+    const id = decodeURIComponent(req.params.id);
+
+    if (!store.renovados) {
+      store.renovados = [];
+    }
+
+    if (!store.renovados.includes(id)) {
+      store.renovados.push(id);
+    }
+
+    store.pagos = store.pagos.filter(item => item !== id);
+
+    store.historico.push({
+      id,
+      acao: "marcou_renovado",
+      data: new Date().toISOString()
+    });
+
+    saveStore();
+
+    res.json({
+      ok: true,
+      renovados: store.renovados
+    });
+  } catch (error) {
+    console.error("Erro em /renovado/:id:", error);
+    res.status(500).json({
+      ok: false,
+      message: "Erro ao marcar como renovado.",
+      error: error.message
+    });
+  }
+});
+
+router.post("/desmarcar-renovado/:id", (req, res) => {
+  try {
+    const id = decodeURIComponent(req.params.id);
+
+    if (!store.renovados) {
+      store.renovados = [];
+    }
+
+    store.renovados = store.renovados.filter(item => item !== id);
+
+    store.historico.push({
+      id,
+      acao: "desmarcou_renovado",
+      data: new Date().toISOString()
+    });
+
+    saveStore();
+
+    res.json({
+      ok: true,
+      renovados: store.renovados
+    });
+  } catch (error) {
+    console.error("Erro em /desmarcar-renovado/:id:", error);
+    res.status(500).json({
+      ok: false,
+      message: "Erro ao desmarcar renovado.",
+      error: error.message
+    });
+  }
 });
 
 router.get("/historico", (req, res) => {
