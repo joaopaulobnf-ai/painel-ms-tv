@@ -19,6 +19,7 @@ function ensureDataFile() {
       dataFile,
       JSON.stringify(
         {
+          clientes: [],
           contatos: {},
           pagos: [],
           historico: [],
@@ -40,6 +41,7 @@ function readData() {
     const parsed = JSON.parse(raw);
 
     return {
+      clientes: Array.isArray(parsed.clientes) ? parsed.clientes : [],
       contatos: parsed.contatos && typeof parsed.contatos === "object" ? parsed.contatos : {},
       pagos: Array.isArray(parsed.pagos) ? parsed.pagos : [],
       historico: Array.isArray(parsed.historico) ? parsed.historico : [],
@@ -47,6 +49,7 @@ function readData() {
     };
   } catch {
     return {
+      clientes: [],
       contatos: {},
       pagos: [],
       historico: [],
@@ -62,6 +65,7 @@ function writeData(data) {
     dataFile,
     JSON.stringify(
       {
+        clientes: Array.isArray(data.clientes) ? data.clientes : [],
         contatos: data.contatos && typeof data.contatos === "object" ? data.contatos : {},
         pagos: Array.isArray(data.pagos) ? data.pagos : [],
         historico: Array.isArray(data.historico) ? data.historico : [],
@@ -77,7 +81,7 @@ function writeData(data) {
 const persisted = readData();
 
 export const store = {
-  clientes: [],
+  clientes: persisted.clientes,
   contatos: persisted.contatos,
   pagos: new Set(persisted.pagos),
   historico: persisted.historico,
@@ -87,6 +91,7 @@ export const store = {
 
 export function saveStore() {
   writeData({
+    clientes: store.clientes,
     contatos: store.contatos,
     pagos: [...store.pagos],
     historico: store.historico,
