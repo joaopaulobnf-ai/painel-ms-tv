@@ -36,6 +36,7 @@ function parseVencimento(rawDate) {
   if (!match) return "";
 
   const [, day, monthText, year] = match;
+
   const normalizedMonth = monthText
     .toLowerCase()
     .normalize("NFD")
@@ -150,17 +151,23 @@ function parseListaManual(texto) {
 }
 
 function obterMesReferencia(clientes) {
-  const primeiroComData = clientes.find(cliente => /^\d{2}\/\d{2}\/\d{4}$/.test(cliente.vencimento));
+  const primeiroComData = clientes.find(cliente =>
+    /^\d{2}\/\d{2}\/\d{4}$/.test(cliente.vencimento)
+  );
 
   if (!primeiroComData) {
     const agora = new Date();
+    const mes = String(agora.getMonth() + 1).padStart(2, "0");
+    const ano = agora.getFullYear();
+
     return {
-      chave: `${String(agora.getMonth() + 1).padStart(2, "0")}/${agora.getFullYear()}`,
-      label: `${String(agora.getMonth() + 1).padStart(2, "0")}/${agora.getFullYear()}`
+      chave: `${mes}/${ano}`,
+      label: `${mes}/${ano}`
     };
   }
 
   const [, mes, ano] = primeiroComData.vencimento.split("/");
+
   return {
     chave: `${mes}/${ano}`,
     label: `${mes}/${ano}`
@@ -233,7 +240,7 @@ router.post("/importar-lista", (req, res) => {
   const resumo = montarResumoMensal(novosClientes);
 
   const entradaHistorico = {
-    id: `${Date.now()}`,
+    id: String(Date.now()),
     mes: mesRef.chave,
     label: mesRef.label,
     dataImportacao: new Date().toISOString(),
@@ -265,6 +272,7 @@ router.post("/limpar-lista", (req, res) => {
   store.clientes = [];
   store.pagos = new Set();
   store.contatos = {};
+
   store.historico.push({
     acao: "limpou_lista_manual",
     data: new Date().toISOString()
