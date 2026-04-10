@@ -27,15 +27,21 @@ function parseConnections(text = "") {
 }
 
 function parseVencimento(rawDate) {
-  const match = String(rawDate).trim().match(
+  const clean = String(rawDate || "").replace(/\s+/g, " ").trim();
+
+  const match = clean.match(
     /^(\d{1,2})\s+([A-Za-zÀ-ÿ]{3})\s+(\d{4})\s+\d{1,2}:\d{1,2}:\d{1,2}$/
   );
 
   if (!match) return "";
 
   const [, day, monthText, year] = match;
-  const month = MONTHS[monthText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")];
+  const normalizedMonth = monthText
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 
+  const month = MONTHS[normalizedMonth];
   if (!month) return "";
 
   return `${String(day).padStart(2, "0")}/${month}/${year}`;
@@ -71,18 +77,17 @@ function normalizarStatus(statusBruto, usuarioBruto) {
 }
 
 function parseLinhaPrincipal(line) {
-  const clean = String(line).replace(/\r/g, "").trim();
+  const clean = String(line || "").replace(/\r/g, "").trim();
   if (!clean) return null;
   if (!/^\d+/.test(clean)) return null;
 
-  const parts = clean.split(/\t+/).map(v => v.trim()).filter(Boolean);
+  const principalMatch = clean.match(
+    /^(\d+)\s+(Expirada|Ativa)\s+(.+?)\s+(\d{1,2}\s+[A-Za-zÀ-ÿ]{3}\s+\d{4}\s+\d{1,2}:\d{1,2}:\d{1,2})\s*.*$/i
+  );
 
-  if (parts.length < 4) return null;
+  if (!principalMatch) return null;
 
-  const id = parts[0];
-  const statusBruto = parts[1];
-  const usuarioBruto = parts[2];
-  const vencimentoBruto = parts[3];
+  const [, id, statusBruto, usuarioBruto, vencimentoBruto] = principalMatch;
 
   const usuario = usuarioBruto.replace(/\s*\(teste\)\s*/i, "").trim();
   const vencimento = parseVencimento(vencimentoBruto);
@@ -133,17 +138,47 @@ function parseListaManual(texto) {
       continue;
     }
 
-    if (ultimoCliente) {
+    if (ultimoCliente && /(\d+)\s*\/\s*(\d+)/.test(line)) {
       const conexoes = parseConnections(line);
-      if (String(line).match(/(\d+)\s*\/\s*(\d+)/)) {
-        ultimoCliente.conexoesAtuais = conexoes.current;
-        ultimoCliente.maxConexoes = conexoes.max;
-        ultimoCliente.conexoesHtml = `${conexoes.current}/${conexoes.max}`;
-      }
+      ultimoCliente.conexoesAtuais = conexoes.current;
+      ultimoCliente.maxConexoes = conexoes.max;
+      ultimoCliente.conexoesHtml = `${conexoes.current}/${conexoes.max}`;
     }
   }
 
   return clientes;
+}
+
+function obterMesReferencia(clientes) {
+  const primeiroComData = clientes.find(cliente => /^\d{2}\/\d{2}\/\d{4}$/.test(cliente.vencimento));
+
+  if (!primeiroComData) {
+    const agora = new Date();
+    return {
+      chave: `${String(agora.getMonth() + 1).padStart(2, "0")}/${agora.getFullYear()}`,
+      label: `${String(agora.getMonth() + 1).padStart(2, "0")}/${agora.getFullYear()}`
+    };
+  }
+
+  const [, mes, ano] = primeiroComData.vencimento.split("/");
+  return {
+    chave: `${mes}/${ano}`,
+    label: `${mes}/${ano}`
+  };
+}
+
+function montarResumoMensal(clientes) {
+  const ativos = clientes.filter(c => c.status === "ativo").length;
+  const vencidos = clientes.filter(c => c.status === "vencido").length;
+  const testes = clientes.filter(c => c.status === "teste").length;
+
+  return {
+    totalClientes: clientes.length,
+    renovacoes: ativos,
+    vencidos,
+    testesGerados: testes,
+    dinheiroBruto: ativos * 30
+  };
 }
 
 router.get("/", (req, res) => {
@@ -194,9 +229,25 @@ router.post("/importar-lista", (req, res) => {
     }
   });
 
+  const mesRef = obterMesReferencia(novosClientes);
+  const resumo = montarResumoMensal(novosClientes);
+
+  const entradaHistorico = {
+    id: `${Date.now()}`,
+    mes: mesRef.chave,
+    label: mesRef.label,
+    dataImportacao: new Date().toISOString(),
+    resumo,
+    clientes: novosClientes
+  };
+
+  store.listasHistorico = store.listasHistorico.filter(item => item.mes !== mesRef.chave);
+  store.listasHistorico.unshift(entradaHistorico);
+
   store.historico.push({
     acao: "importou_lista_manual",
     total: novosClientes.length,
+    mes: mesRef.chave,
     data: new Date().toISOString()
   });
 
@@ -205,7 +256,8 @@ router.post("/importar-lista", (req, res) => {
   res.json({
     ok: true,
     total: store.clientes.length,
-    clients: store.clientes
+    clients: store.clientes,
+    mes: mesRef.chave
   });
 });
 
@@ -222,6 +274,36 @@ router.post("/limpar-lista", (req, res) => {
 
   res.json({
     ok: true
+  });
+});
+
+router.get("/listas-historico", (req, res) => {
+  res.json({
+    ok: true,
+    listas: store.listasHistorico.map(item => ({
+      id: item.id,
+      mes: item.mes,
+      label: item.label,
+      dataImportacao: item.dataImportacao,
+      resumo: item.resumo
+    }))
+  });
+});
+
+router.get("/listas-historico/:mes", (req, res) => {
+  const { mes } = req.params;
+  const item = store.listasHistorico.find(entry => entry.mes === mes);
+
+  if (!item) {
+    return res.status(404).json({
+      ok: false,
+      message: "Mês não encontrado no histórico."
+    });
+  }
+
+  res.json({
+    ok: true,
+    item
   });
 });
 
