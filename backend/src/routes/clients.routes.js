@@ -3,6 +3,21 @@ import { store, saveStore } from "../store.js";
 
 const router = express.Router();
 
+const MONTHS = {
+  jan: "01",
+  fev: "02",
+  mar: "03",
+  abr: "04",
+  mai: "05",
+  jun: "06",
+  jul: "07",
+  ago: "08",
+  set: "09",
+  out: "10",
+  nov: "11",
+  dez: "12"
+};
+
 function parseConnections(text = "") {
   const match = String(text).match(/(\d+)\s*\/\s*(\d+)/);
   return {
@@ -11,30 +26,37 @@ function parseConnections(text = "") {
   };
 }
 
+function parseDateBR(dateStr) {
+  const clean = String(dateStr || "").trim();
+  const match = clean.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+
+  if (!match) return null;
+
+  const [, dd, mm, yyyy] = match;
+  return new Date(Number(yyyy), Number(mm) - 1, Number(dd), 12, 0, 0);
+}
+
+function isPastDate(dateStr) {
+  const d = parseDateBR(dateStr);
+  if (!d) return false;
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+
+  return d < today;
+}
+
 function formatDateBRFromSlash(raw) {
   const clean = String(raw || "").trim();
   const match = clean.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+
   if (!match) return "";
+
   const [, dd, mm, yyyy] = match;
   return `${dd}/${mm}/${yyyy}`;
 }
 
 function formatDateBRFromText(rawDate) {
-  const MONTHS = {
-    jan: "01",
-    fev: "02",
-    mar: "03",
-    abr: "04",
-    mai: "05",
-    jun: "06",
-    jul: "07",
-    ago: "08",
-    set: "09",
-    out: "10",
-    nov: "11",
-    dez: "12"
-  };
-
   const clean = String(rawDate || "").replace(/\s+/g, " ").trim();
 
   const match = clean.match(
@@ -56,35 +78,6 @@ function formatDateBRFromText(rawDate) {
   return `${String(day).padStart(2, "0")}/${month}/${year}`;
 }
 
-function normalizarStatus(statusBruto, usuarioBruto) {
-  const hasTeste = /\(teste\)/i.test(usuarioBruto);
-
-  if (hasTeste) {
-    return {
-      status: "teste",
-      teste: true,
-      ativo: false,
-      vencido: false
-    };
-  }
-
-  if (/expirada|vencida|vencido/i.test(statusBruto)) {
-    return {
-      status: "vencido",
-      teste: false,
-      ativo: false,
-      vencido: true
-    };
-  }
-
-  return {
-    status: "ativo",
-    teste: false,
-    ativo: true,
-    vencido: false
-  };
-}
-
 function sanitizeLogin(login) {
   return String(login || "")
     .replace(/\s*\(teste\)\s*/gi, "")
@@ -98,27 +91,23 @@ function createFallbackId(login, vencimento, index) {
     .replace(/[^\w/-]+/g, "");
 }
 
-function parseLinhaModeloNovo(line, index) {
-  const clean = String(line || "").replace(/\r/g, "").trim();
-  if (!clean) return null;
+function normalizeStatusByDate(baseStatus, vencimento, teste) {
+  if (teste) return "teste";
+  if (isPastDate(vencimento)) return "vencido";
+  return baseStatus === "vencido" ? "vencido" : "ativo";
+}
 
-  const match = clean.match(
-    /^(Ativa|Expirada)\s+(.+?)\s+(\d{2}\/\d{2}\/\d{4},?\s+\d{2}:\d{2}:\d{2})$/i
-  );
-
-  if (!match) return null;
-
-  const [, statusBruto, usuarioBruto, vencimentoBruto] = match;
-
-  const login = sanitizeLogin(usuarioBruto);
-  const vencimento = formatDateBRFromSlash(vencimentoBruto);
-  const statusInfo = normalizarStatus(statusBruto, usuarioBruto);
+function buildStatusInfo(statusBruto, usuarioBruto, vencimento) {
+  const teste = /\(teste\)/i.test(usuarioBruto);
+  const rawVencido = /expirada|vencida|vencido/i.test(statusBruto);
+  const baseStatus = rawVencido ? "vencido" : "ativo";
+  const status = normalizeStatusByDate(baseStatus, vencimento, teste);
 
   return {
-    id: createFallbackId(login, vencimento, index),
-    login,
-    vencimento,
-    ...statusInfo
+    status,
+    teste,
+    ativo: status === "ativo",
+    vencido: status === "vencido"
   };
 }
 
@@ -134,13 +123,35 @@ function parseLinhaModeloAntigo(line, index) {
   if (!principalMatch) return null;
 
   const [, id, statusBruto, usuarioBruto, vencimentoBruto] = principalMatch;
-
   const login = sanitizeLogin(usuarioBruto);
   const vencimento = formatDateBRFromText(vencimentoBruto);
-  const statusInfo = normalizarStatus(statusBruto, usuarioBruto);
+  const statusInfo = buildStatusInfo(statusBruto, usuarioBruto, vencimento);
 
   return {
-    id,
+    id: id || createFallbackId(login, vencimento, index),
+    login,
+    vencimento,
+    ...statusInfo
+  };
+}
+
+function parseLinhaModeloNovo(line, index) {
+  const clean = String(line || "").replace(/\r/g, "").trim();
+  if (!clean) return null;
+
+  const match = clean.match(
+    /^(Ativa|Expirada)\s+(.+?)\s+(\d{2}\/\d{2}\/\d{4},?\s+\d{2}:\d{2}:\d{2})$/i
+  );
+
+  if (!match) return null;
+
+  const [, statusBruto, usuarioBruto, vencimentoBruto] = match;
+  const login = sanitizeLogin(usuarioBruto);
+  const vencimento = formatDateBRFromSlash(vencimentoBruto);
+  const statusInfo = buildStatusInfo(statusBruto, usuarioBruto, vencimento);
+
+  return {
+    id: createFallbackId(login, vencimento, index),
     login,
     vencimento,
     ...statusInfo
@@ -149,6 +160,24 @@ function parseLinhaModeloAntigo(line, index) {
 
 function parseLinhaPrincipal(line, index) {
   return parseLinhaModeloAntigo(line, index) || parseLinhaModeloNovo(line, index);
+}
+
+function recalculateClientStatus(cliente) {
+  const teste = Boolean(cliente.teste);
+  const rawBaseStatus = cliente.status === "vencido" ? "vencido" : "ativo";
+  const status = normalizeStatusByDate(rawBaseStatus, cliente.vencimento, teste);
+
+  return {
+    ...cliente,
+    status,
+    ativo: status === "ativo",
+    vencido: status === "vencido",
+    teste
+  };
+}
+
+function recalculateAllClients(clientes) {
+  return (clientes || []).map(recalculateClientStatus);
 }
 
 function parseListaManual(texto) {
@@ -197,7 +226,18 @@ function parseListaManual(texto) {
     }
   }
 
-  return clientes;
+  return recalculateAllClients(clientes);
+}
+
+function getSafeMonthKeyFromDate(dateStr) {
+  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr || "")) return null;
+  const [, mm, yyyy] = dateStr.split("/");
+  return `${mm}-${yyyy}`;
+}
+
+function getMonthLabelFromKey(key) {
+  if (!key) return "";
+  return key.replace("-", "/");
 }
 
 function obterMesReferencia(clientes) {
@@ -209,28 +249,30 @@ function obterMesReferencia(clientes) {
     const agora = new Date();
     const mes = String(agora.getMonth() + 1).padStart(2, "0");
     const ano = agora.getFullYear();
+    const key = `${mes}-${ano}`;
 
     return {
-      chave: `${mes}/${ano}`,
-      label: `${mes}/${ano}`
+      chave: key,
+      label: getMonthLabelFromKey(key)
     };
   }
 
-  const [, mes, ano] = primeiroComData.vencimento.split("/");
+  const key = getSafeMonthKeyFromDate(primeiroComData.vencimento);
 
   return {
-    chave: `${mes}/${ano}`,
-    label: `${mes}/${ano}`
+    chave: key,
+    label: getMonthLabelFromKey(key)
   };
 }
 
 function montarResumoMensal(clientes) {
-  const ativos = clientes.filter(c => c.status === "ativo").length;
-  const vencidos = clientes.filter(c => c.status === "vencido").length;
-  const testes = clientes.filter(c => c.status === "teste").length;
+  const lista = recalculateAllClients(clientes);
+  const ativos = lista.filter(c => c.status === "ativo").length;
+  const vencidos = lista.filter(c => c.status === "vencido").length;
+  const testes = lista.filter(c => c.status === "teste").length;
 
   return {
-    totalClientes: clientes.length,
+    totalClientes: lista.length,
     renovacoes: ativos,
     vencidos,
     testesGerados: testes,
@@ -239,6 +281,9 @@ function montarResumoMensal(clientes) {
 }
 
 router.get("/", (req, res) => {
+  store.clientes = recalculateAllClients(store.clientes);
+  saveStore();
+
   res.json({
     result: true,
     total: store.clientes.length,
@@ -247,6 +292,9 @@ router.get("/", (req, res) => {
 });
 
 router.get("/sync", (req, res) => {
+  store.clientes = recalculateAllClients(store.clientes);
+  saveStore();
+
   res.json({
     result: true,
     syncedAt: new Date().toISOString(),
@@ -303,7 +351,11 @@ router.post("/importar-lista", (req, res) => {
       clientes: novosClientes
     };
 
-    store.listasHistorico = store.listasHistorico.filter(item => item.mes !== mesRef.chave);
+    store.listasHistorico = store.listasHistorico.filter(item => {
+      const key = (item.mes || "").replace("/", "-");
+      return key !== mesRef.chave;
+    });
+
     store.listasHistorico.unshift(entradaHistorico);
 
     store.historico.push({
@@ -319,7 +371,7 @@ router.post("/importar-lista", (req, res) => {
       ok: true,
       total: store.clientes.length,
       clients: store.clientes,
-      mes: mesRef.chave
+      mes: mesRef.label
     });
   } catch (error) {
     console.error("Erro em /importar-lista:", error);
@@ -349,21 +401,34 @@ router.post("/limpar-lista", (req, res) => {
 });
 
 router.get("/listas-historico", (req, res) => {
-  res.json({
-    ok: true,
-    listas: (store.listasHistorico || []).map(item => ({
+  const listas = (store.listasHistorico || []).map(item => {
+    const safeKey = (item.mes || "").replace("/", "-");
+    const label = item.label || getMonthLabelFromKey(safeKey);
+
+    return {
       id: item.id,
-      mes: item.mes,
-      label: item.label,
+      mes: safeKey,
+      label,
       dataImportacao: item.dataImportacao,
       resumo: item.resumo
-    }))
+    };
+  });
+
+  res.json({
+    ok: true,
+    listas
   });
 });
 
-router.get("/listas-historico/:mes", (req, res) => {
-  const { mes } = req.params;
-  const item = (store.listasHistorico || []).find(entry => entry.mes === mes);
+router.get("/listas-historico/:mes/:ano?", (req, res) => {
+  const { mes, ano } = req.params;
+
+  const requestedKey = ano ? `${mes}-${ano}` : String(mes || "").replace("/", "-");
+
+  const item = (store.listasHistorico || []).find(entry => {
+    const key = String(entry.mes || "").replace("/", "-");
+    return key === requestedKey;
+  });
 
   if (!item) {
     return res.status(404).json({
@@ -374,7 +439,13 @@ router.get("/listas-historico/:mes", (req, res) => {
 
   res.json({
     ok: true,
-    item
+    item: {
+      ...item,
+      mes: String(item.mes || "").replace("/", "-"),
+      label: item.label || getMonthLabelFromKey(String(item.mes || "").replace("/", "-")),
+      clientes: recalculateAllClients(item.clientes || []),
+      resumo: montarResumoMensal(item.clientes || [])
+    }
   });
 });
 
