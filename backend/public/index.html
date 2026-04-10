@@ -189,6 +189,7 @@
     .btn-green{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff}
     .btn-blue{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff}
     .btn-red{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}
+    .btn-gray{background:linear-gradient(135deg,#64748b,#475569);color:#fff}
 
     .grid{
       display:grid;
@@ -264,8 +265,10 @@
     }
 
     textarea{
-      min-height:130px;
+      min-height:260px;
       resize:vertical;
+      font-family:Consolas, Monaco, monospace;
+      line-height:1.5;
     }
 
     .actions-bar{
@@ -555,7 +558,7 @@
       color:#0f172a;
     }
 
-    .promo-box, .raffle-box{
+    .promo-box, .raffle-box, .import-box{
       background:#fff;
       border:1px solid var(--line);
       border-radius:20px;
@@ -660,6 +663,26 @@
       box-shadow:var(--shadow-soft);
     }
 
+    .import-help{
+      background:#f8fafc;
+      border:1px dashed #cbd5e1;
+      border-radius:16px;
+      padding:16px;
+      margin-bottom:14px;
+      color:#475569;
+      line-height:1.6;
+    }
+
+    .import-status{
+      margin-top:12px;
+      padding:12px 14px;
+      border-radius:14px;
+      background:#ecfeff;
+      color:#155e75;
+      font-weight:700;
+      display:none;
+    }
+
     @media (max-width: 980px){
       .layout{flex-direction:column}
       .sidebar{
@@ -722,22 +745,8 @@
     function formatDateDisplay(value) {
       if (!value) return "-";
 
-      const isoMatch = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
-      if (isoMatch) {
-        const [, yyyy, mm, dd] = isoMatch;
-        return `${dd}/${mm}/${yyyy}`;
-      }
-
       const brMatch = String(value).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
       if (brMatch) return value;
-
-      const parsed = new Date(value);
-      if (!Number.isNaN(parsed.getTime())) {
-        const dd = String(parsed.getUTCDate()).padStart(2, "0");
-        const mm = String(parsed.getUTCMonth() + 1).padStart(2, "0");
-        const yyyy = parsed.getUTCFullYear();
-        return `${dd}/${mm}/${yyyy}`;
-      }
 
       return String(value);
     }
@@ -840,7 +849,7 @@
         const data = await fetchJson(API + "/api/auth/me");
         currentUser = data.username;
         renderAppShell();
-        await carregar(true);
+        await carregar();
       } catch {
         renderLogin();
       }
@@ -865,7 +874,7 @@
         localStorage.setItem("ms_tv_token", data.token);
         currentUser = data.username;
         renderAppShell();
-        await carregar(true);
+        await carregar();
       } catch {
         errorBox.style.display = "block";
         errorBox.textContent = "Usuário ou senha inválidos.";
@@ -929,6 +938,7 @@
             <button class="nav-btn ${screen === "financeiro" ? "active" : ""}" onclick="changeScreen('financeiro', this)">💰 Financeiro</button>
             <button class="nav-btn ${screen === "promocao" ? "active" : ""}" onclick="changeScreen('promocao', this)">🎁 Promoção do dia</button>
             <button class="nav-btn ${screen === "sorteio" ? "active" : ""}" onclick="changeScreen('sorteio', this)">🎉 Sorteio do mês</button>
+            <button class="nav-btn ${screen === "importar" ? "active" : ""}" onclick="changeScreen('importar', this)">📥 Importar lista manual</button>
 
             <div class="sidebar-footer">
               WhatsApp oficial da MS TV:<br>
@@ -950,14 +960,10 @@
       render();
     }
 
-    async function carregar(forceSync = true) {
+    async function carregar() {
       try {
-        const rota = forceSync ? "/api/clients/sync" : "/api/clients";
-        const data = await fetchJson(API + rota);
-        clientes = (data.clients || []).map(cliente => ({
-          ...cliente,
-          vencimento: formatDateDisplay(cliente.vencimento || cliente.vencimentoIso)
-        }));
+        const data = await fetchJson(API + "/api/clients");
+        clientes = data.clients || [];
 
         const pagosRes = await fetchJson(API + "/api/clients/pagos");
         pagos = pagosRes || [];
@@ -972,10 +978,58 @@
           document.getElementById("app").innerHTML = `
             <div class="card">
               <h3>Erro ao carregar painel</h3>
-              <p class="muted">Verifique as credenciais do IPTV ou tente novamente.</p>
+              <p class="muted">Tente novamente em alguns instantes.</p>
             </div>
           `;
         }
+      }
+    }
+
+    async function importarListaManual() {
+      const textarea = document.getElementById("listaManual");
+      const statusBox = document.getElementById("importStatus");
+      const lista = textarea.value.trim();
+
+      if (!lista) {
+        alert("Cole a lista manual antes de processar.");
+        return;
+      }
+
+      try {
+        const data = await fetchJson(API + "/api/clients/importar-lista", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ lista })
+        });
+
+        statusBox.style.display = "block";
+        statusBox.textContent = `Lista processada com sucesso. ${data.total} clientes importados.`;
+
+        await carregar();
+        screen = "clientes";
+        renderAppShell();
+        render();
+      } catch (error) {
+        alert("Erro ao processar lista manual.");
+        console.error(error);
+      }
+    }
+
+    async function limparListaManual() {
+      if (!confirm("Tem certeza que deseja limpar todos os clientes importados?")) {
+        return;
+      }
+
+      try {
+        await fetchJson(API + "/api/clients/limpar-lista", {
+          method: "POST"
+        });
+        await carregar();
+      } catch (error) {
+        alert("Erro ao limpar lista.");
+        console.error(error);
       }
     }
 
@@ -1052,9 +1106,9 @@
       const data = formatDateDisplay(cliente.vencimento);
 
       if (tipo === "3") {
-        return `Olá, tudo bem? 😊
+        return `Olá, tudo bem?
 
-Passando para avisar que sua assinatura MS TV (login: ${login}) vence em breve, no dia ${data}.
+Passando para avisar que sua assinatura MS TV (usuário: ${login}) vence em breve, no dia ${data}.
 
 Agradecemos muito por fazer parte da nossa plataforma.
 Você é muito importante para toda a equipe MS TV.
@@ -1065,9 +1119,9 @@ Equipe MS TV`;
       }
 
       if (tipo === "2") {
-        return `Olá, tudo bem? 😊
+        return `Olá, tudo bem?
 
-Sua assinatura MS TV (login: ${login}) vence em 2 dias, na data ${data}.
+Sua assinatura MS TV (usuário: ${login}) vence em 2 dias, na data ${data}.
 
 Queremos garantir que você continue aproveitando a melhor experiência com a MS TV sem interrupções.
 
@@ -1077,9 +1131,9 @@ Equipe MS TV`;
       }
 
       if (tipo === "1") {
-        return `Olá, tudo bem? 😊
+        return `Olá, tudo bem?
 
-Sua assinatura MS TV (login: ${login}) vence amanhã (${data}).
+Sua assinatura MS TV (usuário: ${login}) vence amanhã (${data}).
 
 Para evitar qualquer interrupção no seu acesso, já podemos adiantar sua renovação.
 
@@ -1089,9 +1143,9 @@ Equipe MS TV`;
       }
 
       if (tipo === "0") {
-        return `Olá. 😊
+        return `Olá.
 
-Sua assinatura MS TV (login: ${login}) vence hoje (${data}).
+Sua assinatura MS TV (usuário: ${login}) vence hoje (${data}).
 
 Para continuar aproveitando sua programação sem interrupções, já posso te enviar o PIX para renovação.
 
@@ -1100,9 +1154,9 @@ Você é muito importante para nós.
 Equipe MS TV`;
       }
 
-      return `Olá. 😊
+      return `Olá.
 
-Identificamos que sua assinatura MS TV (login: ${login}) venceu no dia ${data}.
+Identificamos que sua assinatura MS TV (usuário: ${login}) venceu no dia ${data}.
 
 Caso deseje reativar, posso te enviar o PIX agora mesmo.
 
@@ -1192,7 +1246,7 @@ Equipe MS TV`;
           </div>
           <div class="top-actions">
             <div class="welcome-user">Usuário: ${currentUser || "admin"}</div>
-            <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+            <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
             <button class="btn btn-red" onclick="logout()">Sair</button>
           </div>
         </div>
@@ -1214,7 +1268,7 @@ Equipe MS TV`;
               <button class="btn btn-green" onclick="cobrarLista(clientesPorDias(1), '1')">Cobrar em 1 dia (${em1})</button>
               <button class="btn btn-red" onclick="cobrarLista(clientesPorDias(0), '0')">Cobrar hoje (${hoje})</button>
             </div>
-            <p class="notice">Sincronização ao clicar em “Atualizar agora”. Clientes pagos vão para o final da lista.</p>
+            <p class="notice">Atualização agora recarrega a lista salva manualmente. Clientes pagos vão para o final da lista.</p>
           </div>
 
           <div class="card">
@@ -1237,7 +1291,7 @@ Equipe MS TV`;
           </div>
           <div class="top-actions">
             <div class="welcome-user">Usuário: ${currentUser || "admin"}</div>
-            <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+            <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
             <button class="btn btn-red" onclick="logout()">Sair</button>
           </div>
         </div>
@@ -1245,12 +1299,12 @@ Equipe MS TV`;
         <div class="card">
           <div class="toolbar">
             <div>
-              <h3 style="margin:0">Clientes sincronizados</h3>
+              <h3 style="margin:0">Clientes importados manualmente</h3>
               <p class="muted" style="margin:6px 0 0">Cadastre o WhatsApp para cobrança e promoções diretas.</p>
             </div>
 
             <div class="filters">
-              <input id="searchInput" placeholder="Buscar login" value="${filtroBusca}">
+              <input id="searchInput" placeholder="Buscar usuário" value="${filtroBusca}">
               <select id="statusSelect">
                 <option value="" ${filtroStatus === "" ? "selected" : ""}>Todos</option>
                 <option value="ativo" ${filtroStatus === "ativo" ? "selected" : ""}>Ativo</option>
@@ -1266,7 +1320,7 @@ Equipe MS TV`;
               <table>
                 <thead>
                   <tr>
-                    <th>Login</th>
+                    <th>Usuário</th>
                     <th>Vencimento</th>
                     <th>Status</th>
                     <th>Conexões</th>
@@ -1391,7 +1445,7 @@ Equipe MS TV`;
           </div>
           <div class="top-actions">
             <div class="welcome-user">Usuário: ${currentUser || "admin"}</div>
-            <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+            <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
             <button class="btn btn-red" onclick="logout()">Sair</button>
           </div>
         </div>
@@ -1420,7 +1474,7 @@ Equipe MS TV`;
           </div>
           <div class="top-actions">
             <div class="welcome-user">Usuário: ${currentUser || "admin"}</div>
-            <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+            <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
             <button class="btn btn-red" onclick="logout()">Sair</button>
           </div>
         </div>
@@ -1443,7 +1497,7 @@ Equipe MS TV`;
           </div>
           <div class="top-actions">
             <div class="welcome-user">Usuário: ${currentUser || "admin"}</div>
-            <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+            <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
             <button class="btn btn-red" onclick="logout()">Sair</button>
           </div>
         </div>
@@ -1463,11 +1517,11 @@ Equipe MS TV`;
         <div class="topbar">
           <div>
             <h2>Sorteio do mês</h2>
-            <p>Participam clientes marcados como pagos antes ou até o vencimento.</p>
+            <p>Participam clientes marcados como pagos e que não estejam vencidos.</p>
           </div>
           <div class="top-actions">
             <div class="welcome-user">Usuário: ${currentUser || "admin"}</div>
-            <button class="btn btn-dark" onclick="carregar(true)">Atualizar agora</button>
+            <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
             <button class="btn btn-red" onclick="logout()">Sair</button>
           </div>
         </div>
@@ -1480,6 +1534,42 @@ Equipe MS TV`;
       `;
     }
 
+    function renderImportar() {
+      document.getElementById("app").innerHTML = `
+        <div class="topbar">
+          <div>
+            <h2>Importar lista manual</h2>
+            <p>Cole a lista bruta copiada do painel e processe os clientes manualmente.</p>
+          </div>
+          <div class="top-actions">
+            <div class="welcome-user">Usuário: ${currentUser || "admin"}</div>
+            <button class="btn btn-gray" onclick="limparListaManual()">Limpar lista</button>
+            <button class="btn btn-red" onclick="logout()">Sair</button>
+          </div>
+        </div>
+
+        <div class="import-box">
+          <div class="import-help">
+            <strong>Formato aceito:</strong><br><br>
+            ID + Status + Usuário + Vencimento<br>
+            Linhas soltas como canais ou observações serão ignoradas.<br>
+            Exemplo:<br><br>
+            21945723 Expirada Douglas977 8 Abr 2026 23:59:59<br>
+            0/1
+          </div>
+
+          <textarea id="listaManual" placeholder="Cole aqui a lista bruta dos clientes..."></textarea>
+
+          <div class="actions-bar" style="margin-top:14px">
+            <button class="btn btn-green" onclick="importarListaManual()">Processar lista</button>
+            <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
+          </div>
+
+          <div id="importStatus" class="import-status"></div>
+        </div>
+      `;
+    }
+
     function render() {
       if (screen === "dashboard") return renderDashboard();
       if (screen === "clientes") return renderClientes();
@@ -1487,6 +1577,7 @@ Equipe MS TV`;
       if (screen === "financeiro") return renderFinanceiro();
       if (screen === "promocao") return renderPromocao();
       if (screen === "sorteio") return renderSorteio();
+      if (screen === "importar") return renderImportar();
     }
 
     checkSession();
