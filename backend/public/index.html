@@ -1062,6 +1062,22 @@
     }
 
     async function salvarContato(id) {
+      async function removerContato(id) {
+  const confirmar = confirm("Deseja realmente excluir o WhatsApp deste cliente?");
+  if (!confirmar) return;
+
+  try {
+    await fetchJson(API + "/api/clients/contatos/" + encodeURIComponent(id), {
+      method: "DELETE"
+    });
+
+    delete contatos[id];
+    delete editandoContato[id];
+    renderClientes();
+  } catch {
+    alert("Erro ao excluir contato.");
+  }
+}
       const input = document.getElementById("fone_" + id);
       const telefone = input.value.trim();
 
