@@ -1756,3 +1756,48 @@ Equipe MS TV`;
         </button>
     </div>
 </section>
+<script>
+async function processBulkImport() {
+    const raw = document.getElementById("bulkInput").value.trim();
+
+    if (!raw) {
+        alert("Cole os dados primeiro.");
+        return;
+    }
+
+    const linhas = raw
+        .split("\n")
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map(line => {
+            const [login, whatsapp, observacao, pago, renovado] =
+                line.split(";").map(v => (v || "").trim());
+
+            return {
+                login,
+                whatsapp,
+                observacao,
+                pago: pago.toUpperCase() === "PAGO",
+                renovado: renovado.toUpperCase() === "RENOVADO"
+            };
+        });
+
+    const resp = await fetch("/api/clients/bulk-update", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ linhas })
+    });
+
+    const data = await resp.json();
+
+    if (!data.success) {
+        alert(data.message || "Erro no lote.");
+        return;
+    }
+
+    alert("Importação concluída com sucesso!");
+    loadAllData();
+}
+</script>
