@@ -1207,10 +1207,12 @@ Equipe MS TV`;
               <p>Dados da lista importada em ${new Date(item.dataImportacao).toLocaleString("pt-BR")}</p>
             </div>
             <div class="actions">
-              <div class="pill">Usuário: ${escapeHtml(currentUser || "admin")}</div>
-              <button class="btn btn-dark" onclick="renderListasHistorico()">Voltar</button>
-              <button class="btn btn-red" onclick="logout()">Sair</button>
-            </div>
+  <div class="pill">Usuário: ${escapeHtml(currentUser || "admin")}</div>
+  <button class="btn btn-blue" onclick="exportarClientesCSV()">Exportar CSV</button>
+  <button class="btn btn-purple" onclick="imprimirClientes()">Imprimir</button>
+  <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
+  <button class="btn btn-red" onclick="logout()">Sair</button>
+</div>
           </div>
 
           <div class="cards">
