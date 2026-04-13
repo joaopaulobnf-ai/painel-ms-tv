@@ -28,7 +28,15 @@ function normalizeLoginKey(login = "") {
 }
 
 function parseDateBR(dateStr) {
-  function getStatusByVencimento(vencimento, teste = false) {
+  const clean = String(dateStr || "").trim();
+  const match = clean.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!match) return null;
+
+  const [, dd, mm, yyyy] = match;
+  return new Date(Number(yyyy), Number(mm) - 1, Number(dd), 12, 0, 0);
+}
+
+function getStatusByVencimento(vencimento, teste = false) {
   if (teste) return "teste";
 
   const data = parseDateBR(vencimento);
@@ -45,13 +53,6 @@ function refreshClientesStatus() {
     ...cliente,
     status: getStatusByVencimento(cliente.vencimento, cliente.teste)
   }));
-}
-  const clean = String(dateStr || "").trim();
-  const match = clean.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (!match) return null;
-
-  const [, dd, mm, yyyy] = match;
-  return new Date(Number(yyyy), Number(mm) - 1, Number(dd), 12, 0, 0);
 }
 
 function isPastDate(dateStr) {
@@ -77,7 +78,7 @@ function formatDateBRFromText(rawDate) {
   const clean = String(rawDate || "").replace(/\s+/g, " ").trim();
 
   const match = clean.match(
-    /^(\d{1,2})\s+([A-Za-zÀ-ÿ]{3})\s+(\d{4})\s+\d{1,2}:\d{1,2}:\d{1,2}$/
+    /^(\d{1,2})\s+([A-Za-zÀ-ÿ]{3})\s+(\d{4})\s+\d{1,2}:\d{1,2}:\d{1,2}$/i
   );
 
   if (!match) return "";
@@ -198,40 +199,37 @@ function parseLinhaPlanilhaPgRenovado(line, index, existingMap) {
 
     const partes = clean
       .split(/\t+/)
-      .map(v => String(v || "").trim())
-      .filter(Boolean);
+      .map(v => String(v || "").trim());
 
     if (partes.length < 2) return null;
 
     const login = sanitizeLogin(partes[0]);
     const loginKey = normalizeLoginKey(login);
-
     const existente = existingMap.get(loginKey);
 
     const vencimento = formatDateBRFromSlash(partes[1]);
 
     if (!login || !vencimento) return null;
 
-    const acaoRaw = (partes[2] || "").toLowerCase().trim();
+    const acaoRaw = String(partes[2] || "").toLowerCase().trim();
 
     let pago = false;
     let renovado = false;
     let observacao = "";
 
-    // EXTRAI +N
     const plusMatch = acaoRaw.match(/\+\s*(\d+)/i);
     if (plusMatch) {
       observacao = `+${plusMatch[1]}`;
     }
 
-    // REGRAS
     if (acaoRaw.includes("pg renovado")) {
       pago = true;
       renovado = true;
-    }
-    else if (acaoRaw.startsWith("pg")) {
+    } else if (acaoRaw === "pg" || acaoRaw.startsWith("pg +")) {
       pago = true;
       renovado = false;
+    } else {
+      return null;
     }
 
     return {
@@ -245,27 +243,11 @@ function parseLinhaPlanilhaPgRenovado(line, index, existingMap) {
       renovado,
       observacao
     };
-
   } catch (err) {
     console.error("ERRO AO PROCESSAR LINHA:", line);
     console.error(err);
     return null;
   }
-}
-
-  const status = getStatusByVencimento(vencimento, false);
-
-  return {
-    id: existente?.id || `${loginKey}-${index}`,
-    login,
-    loginKey,
-    vencimento,
-    status,
-    teste: false,
-    pago,
-    renovado,
-    observacao
-  };
 }
 
 function parseListaManual(texto) {
@@ -387,10 +369,7 @@ router.post("/importar-lista", (req, res) => {
 
     store.clientes = novosClientes.map(cliente => ({
       ...cliente,
-      observacao:
-        cliente.observacao ||
-        observacoesBackup[cliente.loginKey] ||
-        ""
+      observacao: cliente.observacao || observacoesBackup[cliente.loginKey] || ""
     }));
 
     store.pagos = [];
@@ -421,6 +400,8 @@ router.post("/importar-lista", (req, res) => {
         }
       }
     }
+
+    refreshClientesStatus();
 
     const mesRef = getMesReferencia(store.clientes);
     const resumo = montarResumoMensal(store.clientes, store.pagos, store.renovados);
