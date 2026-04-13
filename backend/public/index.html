@@ -324,6 +324,43 @@ tbody td{
   <div id="root"></div>
 
   <script>
+    function renderBulkImport() {
+  document.getElementById("app").innerHTML = `
+    <div class="topbar">
+      <div>
+        <h2>Importação em lote</h2>
+        <p>Cole linhas da planilha para marcar pago/renovado e observações em massa.</p>
+      </div>
+      <div class="actions">
+        <div class="pill">Usuário: ${escapeHtml(currentUser || "admin")}</div>
+        <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
+        <button class="btn btn-red" onclick="logout()">Sair</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <p style="color:var(--muted);margin-top:0">
+        Formato aceito:<br>
+        <strong>LOGIN TAB VENCIMENTO TAB AÇÃO TAB QUALQUER_COISA</strong><br><br>
+        Exemplos:<br>
+        juniorjd779  01/04/2026 17:07  pg renovado  1<br>
+        hugo7790     02/04/2026 23:59  pg renovado +2  3
+      </p>
+
+      <textarea
+        id="bulkInput"
+        placeholder="Cole aqui as linhas da planilha..."
+        style="width:100%;min-height:320px"
+      ></textarea>
+
+      <div style="height:12px"></div>
+
+      <div class="actions">
+        <button class="btn btn-green" onclick="processBulkImport()">Processar lote</button>
+      </div>
+    </div>
+  `;
+}
     const API = window.location.origin;
     const VALOR_MENSAL = 30;
 
