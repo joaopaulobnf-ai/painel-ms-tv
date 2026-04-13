@@ -502,8 +502,7 @@ function statusLabel(cliente) {
 
    function clientesVencidos() {
   return sortClientes(clientesVisiveisClientesCobrancas()).filter(c => {
-    const dias = diffDays(c.vencimento);
-    return dias !== null && dias < 0 && !isPago(c.id);
+    return statusReal(c) === "vencido" && !isPago(c.id);
   });
 }
 
