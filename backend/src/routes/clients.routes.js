@@ -322,6 +322,9 @@ function atualizarResumoMensalAtual() {
 }
 
 router.get("/", (req, res) => {
+  refreshClientesStatus();
+  saveStore();
+
   res.json({
     result: true,
     total: store.clientes.length,
