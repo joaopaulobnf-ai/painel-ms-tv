@@ -1424,9 +1424,12 @@ Equipe MS TV`;
     }
 
     function renderFinanceiro() {
-      const receitaBruta = pagos.length * VALOR_MENSAL;
-      const vencidos = clientes.filter(c => c.status === "vencido").length;
-      const renovadosTotal = renovados.length;
+  const receitaBruta = pagos.length * VALOR_MENSAL;
+  const vencidos = clientes.filter(c => {
+    const dias = diffDays(c.vencimento);
+    return dias !== null && dias < 0;
+  }).length;
+  const renovadosTotal = renovados.length;
 
       document.getElementById("app").innerHTML = `
         <div class="topbar">
