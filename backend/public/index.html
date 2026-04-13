@@ -1049,19 +1049,34 @@ Equipe MS TV`;
                   </tr>
                 </thead>
                 <tbody>
-                  ${
-                    (item.clientes || []).length
-                      ? item.clientes.map(cliente => `
-                        <tr>
-                          <td>${escapeHtml(cliente.login)}</td>
-                          <td>${escapeHtml(cliente.vencimento || "-")}</td>
-                          <td>${escapeHtml(cliente.status || "-")}</td>
-                          <td>${escapeHtml(cliente.observacao || "")}</td>
-                        </tr>
-                      `).join("")
-                      : `<tr><td colspan="4" class="empty">Nenhum cliente encontrado.</td></tr>`
-                  }
-                </tbody>
+  ${
+    (item.clientes || []).length
+      ? item.clientes.map(cliente => `
+        <tr>
+          <td>${escapeHtml(cliente.login)}</td>
+          <td>${escapeHtml(cliente.vencimento || "-")}</td>
+          <td>
+            ${
+              cliente.renovado
+                ? `<span class="badge badge-renovado">Renovado</span>`
+                : cliente.pago
+                  ? `<span class="badge badge-pago">Pago</span>`
+                  : `<span class="${cliente.status === "ativo" ? "badge badge-ativo" : cliente.status === "teste" ? "badge badge-teste" : "badge badge-vencido"}">${escapeHtml(cliente.status || "-")}</span>`
+            }
+          </td>
+          <td>${escapeHtml(cliente.observacao || "")}</td>
+          <td>
+            ${
+              cliente.renovado
+                ? `<button class="mini-btn mini-red" onclick='desmarcarRenovado(${JSON.stringify(cliente.id)})'>Desmarcar renovado</button>`
+                : `<span style="color:var(--muted)">—</span>`
+            }
+          </td>
+        </tr>
+      `).join("")
+      : `<tr><td colspan="5" class="empty">Nenhum cliente encontrado.</td></tr>`
+  }
+</tbody>
               </table>
             </div>
           </div>
