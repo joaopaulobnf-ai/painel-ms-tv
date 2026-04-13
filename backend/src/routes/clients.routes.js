@@ -28,6 +28,24 @@ function normalizeLoginKey(login = "") {
 }
 
 function parseDateBR(dateStr) {
+  function getStatusByVencimento(vencimento, teste = false) {
+  if (teste) return "teste";
+
+  const data = parseDateBR(vencimento);
+  if (!data) return "ativo";
+
+  const agora = new Date();
+  const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 12, 0, 0);
+
+  return data < hoje ? "vencido" : "ativo";
+}
+
+function refreshClientesStatus() {
+  store.clientes = (store.clientes || []).map(cliente => ({
+    ...cliente,
+    status: getStatusByVencimento(cliente.vencimento, cliente.teste)
+  }));
+}
   const clean = String(dateStr || "").trim();
   const match = clean.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (!match) return null;
