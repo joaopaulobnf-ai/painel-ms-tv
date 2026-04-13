@@ -526,72 +526,7 @@
         alert("Erro ao desmarcar pagamento.");
       }
     }
-    function closeRenovadoModal() {
-      const modal = document.getElementById("renovadoModalOverlay");
-      if (modal) modal.remove();
-    }
-
-    function openRenovadoModal(clienteId, nomeCliente) {
-      closeRenovadoModal();
-
-      const overlay = document.createElement("div");
-      overlay.id = "renovadoModalOverlay";
-      overlay.className = "modal-overlay";
-
-      overlay.innerHTML = `
-        <div class="modal-card">
-          <div class="modal-head">
-            <h3>Confirmar renovação</h3>
-          </div>
-
-          <div class="modal-body">
-            Deseja marcar <strong>${escapeHtml(nomeCliente)}</strong> como
-            <span class="modal-highlight">RENOVADO</span>?
-            <br><br>
-            Após confirmar:
-            <br>
-            • o cliente sai de <strong>Clientes</strong>
-            <br>
-            • o cliente sai de <strong>Cobranças</strong>
-            <br>
-            • continua em <strong>Dashboard</strong>, <strong>Financeiro</strong>, <strong>Sorteio</strong> e <strong>Resumo Mensal</strong>
-          </div>
-
-          <div class="modal-actions">
-            <button class="btn btn-light" onclick="closeRenovadoModal()">Cancelar</button>
-            <button class="btn btn-orange" onclick="confirmarRenovado(${JSON.stringify(clienteId)})">Confirmar renovado</button>
-          </div>
-        </div>
-      `;
-
-      overlay.addEventListener("click", (event) => {
-        if (event.target === overlay) {
-          closeRenovadoModal();
-        }
-      });
-
-      document.body.appendChild(overlay);
-    }
-
-    async function confirmarRenovado(id) {
-      try {
-        await fetchJson(API + "/api/clients/renovado/" + encodeURIComponent(id), {
-          method: "POST"
-        });
-
-        if (!renovados.includes(id)) {
-          renovados.push(id);
-        }
-
-        closeRenovadoModal();
-        render();
-      } catch (error) {
-        console.error(error);
-        closeRenovadoModal();
-        alert("Erro ao marcar como renovado.");
-      }
-    }
-        function closeRenovadoModal() {
+            function closeRenovadoModal() {
       const modal = document.getElementById("renovadoModalOverlay");
       if (modal) modal.remove();
     }
