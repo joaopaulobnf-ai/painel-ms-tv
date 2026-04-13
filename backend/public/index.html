@@ -629,7 +629,7 @@
       if (modal) modal.remove();
     }
 
-    function openRenovadoModal(clienteId, nomeCliente) {
+        function openRenovadoModal(clienteId, nomeCliente) {
       closeRenovadoModal();
 
       const overlay = document.createElement("div");
@@ -639,25 +639,40 @@
       overlay.innerHTML = `
         <div class="modal-card">
           <div class="modal-head">
-            <h3>Confirmar renovação</h3>
+            <div class="modal-icon">✨</div>
+            <div>
+              <h3>Confirmar renovação</h3>
+              <p>Padrão premium MS TV</p>
+            </div>
           </div>
 
           <div class="modal-body">
             Deseja marcar <strong>${escapeHtml(nomeCliente)}</strong> como
             <span class="modal-highlight">RENOVADO</span>?
-            <br><br>
-            Após confirmar:
-            <br>
-            • o cliente sai de <strong>Clientes</strong>
-            <br>
-            • o cliente sai de <strong>Cobranças</strong>
-            <br>
-            • continua em <strong>Dashboard</strong>, <strong>Financeiro</strong>, <strong>Sorteio</strong> e <strong>Resumo Mensal</strong>
+
+            <div class="modal-list">
+              <div class="modal-item">
+                <span>📂</span>
+                <div>O cliente será removido das telas de <strong>Clientes</strong> e <strong>Cobranças</strong>.</div>
+              </div>
+
+              <div class="modal-item">
+                <span>📊</span>
+                <div>Ele continuará visível em <strong>Dashboard</strong> e <strong>Financeiro</strong>.</div>
+              </div>
+
+              <div class="modal-item">
+                <span>🎉</span>
+                <div>Ele continuará participando de <strong>Sorteio</strong> e ficará salvo no <strong>Resumo Mensal</strong>.</div>
+              </div>
+            </div>
           </div>
 
           <div class="modal-actions">
             <button class="btn btn-light" onclick="closeRenovadoModal()">Cancelar</button>
-            <button class="btn btn-orange" onclick="confirmarRenovado(${JSON.stringify(clienteId)})">Confirmar renovado</button>
+            <button class="btn btn-orange" onclick="confirmarRenovado(${JSON.stringify(clienteId)})">
+              Confirmar renovado
+            </button>
           </div>
         </div>
       `;
