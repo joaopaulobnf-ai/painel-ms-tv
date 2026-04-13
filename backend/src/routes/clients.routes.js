@@ -458,7 +458,34 @@ router.post("/renovado/:id", (req, res) => {
     });
   }
 });
+router.post("/desmarcar-renovado/:id", (req, res) => {
+  try {
+    const id = decodeURIComponent(req.params.id);
 
+    store.renovados = store.renovados.filter(item => item !== id);
+
+    store.historico.push({
+      id,
+      acao: "desmarcou_renovado",
+      data: new Date().toISOString()
+    });
+
+    atualizarResumoMensalAtual();
+    saveStore();
+
+    res.json({
+      ok: true,
+      renovados: store.renovados
+    });
+  } catch (error) {
+    console.error("Erro em /desmarcar-renovado/:id:", error);
+    res.status(500).json({
+      ok: false,
+      message: "Erro ao desmarcar renovado.",
+      error: error.message
+    });
+  }
+});
 router.get("/contatos", (req, res) => {
   res.json(contatosByCurrentIds());
 });
