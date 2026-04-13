@@ -813,28 +813,28 @@
     }
 
     async function salvarObservacao(id) {
-      const input = document.getElementById("obs_" + cssSafeId(id));
-      if (!input) {
-        alert("Campo de observação não encontrado.");
-        return;
-      }
+  const input = document.getElementById("obs_" + cssSafeId(id));
+  if (!input) {
+    alert("Campo de observação não encontrado.");
+    return;
+  }
 
-      const observacao = input.value.trim();
+  const observacao = input.value.trim();
 
-      try {
-        await fetchJson(API + "/api/clients/observacoes/" + encodeURIComponent(id), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ observacao })
-        });
+  try {
+    await fetchJson(API + "/api/clients/observacoes/" + encodeURIComponent(id), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ observacao })
+    });
 
-        observacoes[id] = observacao;
-        renderClientes();
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao salvar observação.");
-      }
-    }
+    observacoes[id] = observacao;
+    renderClientes();
+  } catch (error) {
+    console.error(error);
+    alert("Erro ao salvar observação.");
+  }
+}
 
     function buildClientWhatsappLink(cliente, text) {
       const numero = contatos[cliente.id];
