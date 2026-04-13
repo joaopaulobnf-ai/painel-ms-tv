@@ -1178,11 +1178,19 @@ Equipe MS TV`;
     }
 
     function renderDashboard() {
-      const ativos = clientes.filter(c => c.status === "ativo").length;
-      const vencidos = clientes.filter(c => c.status === "vencido").length;
-      const testes = clientes.filter(c => c.status === "teste").length;
-      const receitaBruta = pagos.length * VALOR_MENSAL;
-      const renovadosTotal = renovados.length;
+  const ativos = clientes.filter(c => {
+    const dias = diffDays(c.vencimento);
+    return c.status === "ativo" && dias !== null && dias >= 0;
+  }).length;
+
+  const vencidos = clientes.filter(c => {
+    const dias = diffDays(c.vencimento);
+    return dias !== null && dias < 0;
+  }).length;
+
+  const testes = clientes.filter(c => c.status === "teste").length;
+  const receitaBruta = pagos.length * VALOR_MENSAL;
+  const renovadosTotal = renovados.length;
 
       document.getElementById("app").innerHTML = `
         <div class="topbar">
