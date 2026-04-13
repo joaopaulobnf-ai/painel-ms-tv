@@ -650,64 +650,79 @@
     }
 
             function openRenovadoModal(clienteId, nomeCliente) {
-      closeRenovadoModal();
+  closeRenovadoModal();
 
-      const overlay = document.createElement("div");
-      overlay.id = "renovadoModalOverlay";
-      overlay.className = "modal-overlay";
+  const overlay = document.createElement("div");
+  overlay.id = "renovadoModalOverlay";
+  overlay.className = "modal-overlay";
 
-      overlay.innerHTML = `
-        <div class="modal-card">
-          <div class="modal-head">
-            <div class="modal-avatar">
-              <img src="/avatar-ms-tv.png" alt="MS TV">
-            </div>
+  overlay.innerHTML = `
+    <div class="modal-card">
+      <div class="modal-head">
+        <div class="modal-avatar">
+          <img src="/avatar-ms-tv.png" alt="MS TV">
+        </div>
 
-            <div>
-              <h3>Confirmar renovação</h3>
-              <p>Padrão premium MS TV</p>
-            </div>
+        <div>
+          <h3>Confirmar renovação</h3>
+          <p>Padrão premium MS TV</p>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        Deseja marcar <strong>${escapeHtml(nomeCliente)}</strong> como
+        <span class="modal-highlight">RENOVADO</span>?
+
+        <div class="modal-list">
+          <div class="modal-item">
+            <span>📂</span>
+            <div>O cliente será removido das telas de <strong>Clientes</strong> e <strong>Cobranças</strong>.</div>
           </div>
 
-          <div class="modal-body">
-            Deseja marcar <strong>${escapeHtml(nomeCliente)}</strong> como
-            <span class="modal-highlight">RENOVADO</span>?
-
-            <div class="modal-list">
-              <div class="modal-item">
-                <span>📂</span>
-                <div>O cliente será removido das telas de <strong>Clientes</strong> e <strong>Cobranças</strong>.</div>
-              </div>
-
-              <div class="modal-item">
-                <span>📊</span>
-                <div>Ele continuará visível em <strong>Dashboard</strong> e <strong>Financeiro</strong>.</div>
-              </div>
-
-              <div class="modal-item">
-                <span>🎉</span>
-                <div>Ele continuará participando de <strong>Sorteio</strong> e ficará salvo no <strong>Resumo Mensal</strong>.</div>
-              </div>
-            </div>
+          <div class="modal-item">
+            <span>📊</span>
+            <div>Ele continuará visível em <strong>Dashboard</strong> e <strong>Financeiro</strong>.</div>
           </div>
 
-          <div class="modal-actions">
-            <button class="btn btn-light" onclick="closeRenovadoModal()">Cancelar</button>
-            <button class="btn btn-orange" onclick="confirmarRenovado(${JSON.stringify(clienteId)})">
-              Confirmar renovado
-            </button>
+          <div class="modal-item">
+            <span>🎉</span>
+            <div>Ele continuará participando de <strong>Sorteio</strong> e ficará salvo no <strong>Resumo Mensal</strong>.</div>
           </div>
         </div>
-      `;
+      </div>
 
-      overlay.addEventListener("click", (event) => {
-        if (event.target === overlay) {
-          closeRenovadoModal();
-        }
-      });
+      <div class="modal-actions">
+        <button id="cancelRenovadoBtn" class="btn btn-light">
+          Cancelar
+        </button>
+        <button id="confirmRenovadoBtn" class="btn btn-orange">
+          Confirmar renovado
+        </button>
+      </div>
+    </div>
+  `;
 
-      document.body.appendChild(overlay);
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) {
+      closeRenovadoModal();
     }
+  });
+
+  document.body.appendChild(overlay);
+
+  const cancelBtn = document.getElementById("cancelRenovadoBtn");
+  const confirmBtn = document.getElementById("confirmRenovadoBtn");
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", closeRenovadoModal);
+  }
+
+  if (confirmBtn) {
+    confirmBtn.addEventListener("click", () => {
+      confirmarRenovado(clienteId);
+    });
+  }
+}
     async function confirmarRenovado(id) {
       try {
         await fetchJson(API + "/api/clients/renovado/" + encodeURIComponent(id), {
