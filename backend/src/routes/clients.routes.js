@@ -195,12 +195,12 @@ function parseListaManual(texto) {
   return clientes;
 }
 
-function montarResumoMensal(clientes) {
+function montarResumoMensal(clientes, pagosLista = [], renovadosLista = []) {
   const totalClientes = clientes.length;
   const vencidos = clientes.filter(c => c.status === "vencido").length;
   const testesGerados = clientes.filter(c => c.status === "teste").length;
-  const renovacoes = clientes.filter(c => c.status === "ativo").length;
-  const dinheiroBruto = 0;
+  const renovacoes = renovadosLista.length;
+  const dinheiroBruto = pagosLista.length * 30;
 
   return {
     totalClientes,
@@ -245,6 +245,26 @@ function observacoesByCurrentIds() {
   return result;
 }
 
+function atualizarResumoMensalAtual() {
+  if (!Array.isArray(store.listasHistorico) || !store.listasHistorico.length) return;
+
+  const mesRef = getMesReferencia(store.clientes);
+  const idx = store.listasHistorico.findIndex(item => item.mes === mesRef.chave);
+  if (idx === -1) return;
+
+  store.listasHistorico[idx] = {
+    ...store.listasHistorico[idx],
+    resumo: montarResumoMensal(store.clientes, store.pagos, store.renovados),
+    clientes: store.clientes.map(cliente => ({
+      ...cliente,
+      telefone: store.contatos[cliente.loginKey] || "",
+      observacao: store.observacoes[cliente.loginKey] || "",
+      pago: store.pagos.includes(cliente.id),
+      renovado: store.renovados.includes(cliente.id)
+    }))
+  };
+}
+
 router.get("/", (req, res) => {
   res.json({
     result: true,
@@ -279,7 +299,7 @@ router.post("/importar-lista", (req, res) => {
     store.pagos = [];
     store.renovados = [];
 
-    const resumo = montarResumoMensal(novosClientes);
+    const resumo = montarResumoMensal(novosClientes, store.pagos, store.renovados);
 
     const historicoMes = {
       id: String(Date.now()),
@@ -290,7 +310,9 @@ router.post("/importar-lista", (req, res) => {
       clientes: novosClientes.map(cliente => ({
         ...cliente,
         telefone: store.contatos[cliente.loginKey] || "",
-        observacao: store.observacoes[cliente.loginKey] || ""
+        observacao: store.observacoes[cliente.loginKey] || "",
+        pago: false,
+        renovado: false
       }))
     };
 
@@ -332,6 +354,7 @@ router.post("/limpar-lista", (req, res) => {
     data: new Date().toISOString()
   });
 
+  atualizarResumoMensalAtual();
   saveStore();
 
   res.json({ ok: true });
@@ -359,6 +382,7 @@ router.post("/pagar/:id", (req, res) => {
       data: new Date().toISOString()
     });
 
+    atualizarResumoMensalAtual();
     saveStore();
 
     res.json({
@@ -387,6 +411,7 @@ router.post("/desmarcar-pago/:id", (req, res) => {
       data: new Date().toISOString()
     });
 
+    atualizarResumoMensalAtual();
     saveStore();
 
     res.json({
@@ -417,6 +442,7 @@ router.post("/renovado/:id", (req, res) => {
       data: new Date().toISOString()
     });
 
+    atualizarResumoMensalAtual();
     saveStore();
 
     res.json({
@@ -467,6 +493,7 @@ router.post("/contatos/:id", (req, res) => {
     }
 
     store.contatos[cliente.loginKey] = numeroLimpo;
+    atualizarResumoMensalAtual();
     saveStore();
 
     res.json({
@@ -496,6 +523,7 @@ router.delete("/contatos/:id", (req, res) => {
     }
 
     delete store.contatos[cliente.loginKey];
+    atualizarResumoMensalAtual();
     saveStore();
 
     res.json({
@@ -529,6 +557,13 @@ router.post("/observacoes/:id", (req, res) => {
     }
 
     store.observacoes[cliente.loginKey] = String(observacao || "").trim();
+
+    const clienteAtual = store.clientes.find(c => c.id === id);
+    if (clienteAtual) {
+      clienteAtual.observacao = store.observacoes[cliente.loginKey];
+    }
+
+    atualizarResumoMensalAtual();
     saveStore();
 
     res.json({
