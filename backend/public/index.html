@@ -1758,46 +1758,67 @@ Equipe MS TV`;
 </section>
 <script>
 async function processBulkImport() {
-    const raw = document.getElementById("bulkInput").value.trim();
+  const raw = document.getElementById("bulkInput").value.trim();
 
-    if (!raw) {
-        alert("Cole os dados primeiro.");
-        return;
-    }
+  if (!raw) {
+    alert("Cole os dados primeiro.");
+    return;
+  }
 
-    const linhas = raw
-        .split("\n")
-        .map(line => line.trim())
-        .filter(Boolean)
-        .map(line => {
-            const [login, whatsapp, observacao, pago, renovado] =
-                line.split(";").map(v => (v || "").trim());
+  const linhas = raw
+    .split("\n")
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => {
+      const partes = line.split(/\t+|;+/).map(v => (v || "").trim());
 
-            return {
-                login,
-                whatsapp,
-                observacao,
-                pago: pago.toUpperCase() === "PAGO",
-                renovado: renovado.toUpperCase() === "RENOVADO"
-            };
-        });
+      const login = partes[0] || "";
+      const vencimento = partes[1] || "";
+      const acaoBruta = (partes[2] || "").toLowerCase();
+      const quartaColuna = partes[3] || "";
 
-    const resp = await fetch("/api/clients/bulk-update", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ linhas })
-    });
+      let pago = false;
+      let renovado = false;
+      let observacao = "";
 
-    const data = await resp.json();
+      if (acaoBruta.includes("pg renovado")) {
+        pago = true;
+        renovado = true;
 
-    if (!data.success) {
-        alert(data.message || "Erro no lote.");
-        return;
-    }
+        const plusMatch = acaoBruta.match(/\+\s*(\d+)/i);
+        if (plusMatch) {
+          observacao = `+${plusMatch[1]}`;
+        }
+      }
 
-    alert("Importação concluída com sucesso!");
-    loadAllData();
+      return {
+        login,
+        vencimento,
+        whatsapp: "",
+        observacao,
+        pago,
+        renovado,
+        extra: quartaColuna
+      };
+    })
+    .filter(item => item.login);
+
+  const resp = await fetch("/api/clients/bulk-update", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders()
+    },
+    body: JSON.stringify({ linhas })
+  });
+
+  const data = await resp.json();
+
+  if (!data.success) {
+    alert(data.message || "Erro no lote.");
+    return;
+  }
+
+  alert("Importação concluída com sucesso!");
+  await carregar();
 }
-</script>
