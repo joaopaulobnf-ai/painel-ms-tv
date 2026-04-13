@@ -454,12 +454,15 @@ function statusLabel(cliente) {
   return "Inativo";
 }
     function statusClass(cliente) {
-      if (isPago(cliente.id)) return "badge badge-pago";
-      if (isRenovado(cliente.id)) return "badge badge-renovado";
-      if (cliente.status === "ativo") return "badge badge-ativo";
-      if (cliente.status === "teste") return "badge badge-teste";
-      return "badge badge-vencido";
-    }
+  if (isPago(cliente.id)) return "badge badge-pago";
+  if (isRenovado(cliente.id)) return "badge badge-renovado";
+
+  const realStatus = statusReal(cliente);
+
+  if (realStatus === "ativo") return "badge badge-ativo";
+  if (realStatus === "teste") return "badge badge-teste";
+  return "badge badge-vencido";
+}
 
     function sortClientes(lista) {
       return [...lista].sort((a, b) => {
