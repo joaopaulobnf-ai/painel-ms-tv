@@ -841,6 +841,36 @@ function closeDesmarcarRenovadoModal() {
   if (confirmBtn) {
     confirmBtn.addEventListener("click", () => {
       confirmarDesmarcarRenovado(clienteId);
+      async function confirmarDesmarcarRenovado(id) {
+  try {
+    const confirmBtn = document.getElementById("confirmDesmarcarRenovadoBtn");
+
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = "Processando...";
+      confirmBtn.style.opacity = "0.7";
+      confirmBtn.style.cursor = "wait";
+    }
+
+    await fetchJson(API + "/api/clients/desmarcar-renovado/" + encodeURIComponent(id), {
+      method: "POST"
+    });
+
+    renovados = renovados.filter(item => item !== id);
+
+    closeDesmarcarRenovadoModal();
+    await carregar();
+
+    if (screen === "listas") {
+      renderListasHistorico();
+    } else {
+      render();
+    }
+  } catch (error) {
+    console.error(error);
+    alert("Erro ao desmarcar renovado.");
+  }
+}
     });
   }
 }
