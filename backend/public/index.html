@@ -1062,148 +1062,165 @@ Equipe MS TV`;
     }
 
     function renderClientes() {
-      const lista = clientesFiltrados();
+  const lista = clientesFiltrados();
 
-      document.getElementById("app").innerHTML = `
-        <div class="topbar">
-          <div>
-            <h2>Clientes</h2>
-            <p>Lista completa, ordenada por vencimento.</p>
-          </div>
-          <div class="actions">
-            <div class="pill">Usuário: ${escapeHtml(currentUser || "admin")}</div>
-            <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
-            <button class="btn btn-red" onclick="logout()">Sair</button>
-          </div>
+  document.getElementById("app").innerHTML = `
+    <div class="topbar">
+      <div>
+        <h2>Clientes</h2>
+        <p>Lista completa, ordenada por vencimento.</p>
+      </div>
+      <div class="actions">
+        <div class="pill">Usuário: ${escapeHtml(currentUser || "admin")}</div>
+        <button class="btn btn-dark" onclick="carregar()">Atualizar agora</button>
+        <button class="btn btn-red" onclick="logout()">Sair</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <div>
+          <h3 style="margin:0">Clientes visíveis no painel</h3>
+          <p style="margin:6px 0 0;color:var(--muted)">Clientes marcados como renovado somem apenas daqui e das cobranças.</p>
         </div>
 
-        <div class="card">
-          <div class="toolbar">
-            <div>
-              <h3 style="margin:0">Clientes visíveis no painel</h3>
-              <p style="margin:6px 0 0;color:var(--muted)">Clientes marcados como renovado somem apenas daqui e das cobranças.</p>
-            </div>
-
-            <div class="filters">
-              <input id="searchInput" placeholder="Buscar usuário" value="${escapeAttr(filtroBusca)}">
-              <select id="statusSelect">
-                <option value="" ${filtroStatus === "" ? "selected" : ""}>Todos</option>
-                <option value="ativo" ${filtroStatus === "ativo" ? "selected" : ""}>Ativo</option>
-                <option value="teste" ${filtroStatus === "teste" ? "selected" : ""}>Teste</option>
-                <option value="vencido" ${filtroStatus === "vencido" ? "selected" : ""}>Vencido</option>
-                <option value="pago" ${filtroStatus === "pago" ? "selected" : ""}>Pago</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="table-wrap">
-            <table>
-              <colgroup>
-                <col class="col-user">
-                <col class="col-venc">
-                <col class="col-status">
-                <col class="col-obs">
-                <col class="col-acoes">
-              </colgroup>
-              <thead>
-                <tr>
-                  <th>Usuário</th>
-                  <th>Vencimento</th>
-                  <th>Status</th>
-                  <th>Observação</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${
-                  lista.length
-                    ? lista.map(c => {
-                      const safeId = JSON.stringify(c.id);
-                      const inputId = "fone_" + cssSafeId(c.id);
-                      const obsId = "obs_" + cssSafeId(c.id);
-
-                      return `
-                        <tr>
-                          <td>${escapeHtml(c.login)}</td>
-                          <td>${escapeHtml(c.vencimento || "-")}</td>
-                          <td><span class="${statusClass(c)}">${statusLabel(c)}</span></td>
-                          <td>
-                            <div class="obs-box">
-                              <span class="obs-label">Observação</span>
-                              <div class="row">
-                                <input id="${obsId}" value="${escapeAttr(observacoes[c.id] || "")}" placeholder="Digite uma observação">
-                                <button class="mini-btn mini-green" onclick='salvarObservacao(${safeId})'>Salvar</button>
-                              </div>
-                            </div>
-                          </td>
-                          <td>
-                            <div class="table-actions">
-                              <div class="contact-box">
-                                <span class="contact-label">WhatsApp do cliente</span>
-                                ${
-                                  contatos[c.id] && !editandoContato[c.id]
-                                    ? `
-                                      <div class="row">
-                                        <div class="saved-phone">${escapeHtml(contatos[c.id])}</div>
-                                        <button class="mini-btn mini-gray" onclick='abrirEdicaoContato(${safeId})'>Editar</button>
-                                        <button class="mini-btn mini-red" onclick='removerContato(${safeId})'>Excluir</button>
-                                      </div>
-                                    `
-                                    : `
-                                      <div class="row">
-                                        <input id="${inputId}" placeholder="Ex: 62999999999" value="${escapeAttr(contatos[c.id] || "")}">
-                                        <button class="mini-btn mini-green" onclick='salvarContato(${safeId})'>Salvar</button>
-                                        ${
-                                          contatos[c.id]
-                                            ? `<button class="mini-btn mini-outline" onclick='cancelarEdicaoContato(${safeId})'>Cancelar</button>`
-                                            : ""
-                                        }
-                                      </div>
-                                    `
-                                }
-                              </div>
-
-                              <div class="row">
-                                <a
-                                  class="mini-btn mini-outline"
-                                  target="_blank"
-                                  href="${contatos[c.id] ? buildClientWhatsappLink(c, `Olá, tudo bem? Sua assinatura MS TV (${c.login}) vence em ${c.vencimento}. Caso queira, posso te enviar o PIX para renovação.`) : '#'}"
-                                  onclick="${contatos[c.id] ? "" : "alert('Cadastre o WhatsApp do cliente primeiro.'); return false;"}"
-                                >
-                                  WhatsApp
-                                </a>
-
-                                <button class="mini-btn mini-outline" onclick='marcarRenovado(${safeId})'>Renovado</button>
-
-                                ${
-                                  isPago(c.id)
-                                    ? `<button class="mini-btn mini-green" onclick='desmarcarPago(${safeId})'>Pago</button>`
-                                    : `<button class="mini-btn mini-blue" onclick='marcarPago(${safeId})'>Pago</button>`
-                                }
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      `;
-                    }).join("")
-                    : `<tr><td colspan="5" class="empty">Nenhum cliente encontrado.</td></tr>`
-                }
-              </tbody>
-            </table>
-          </div>
+        <div class="filters">
+          <input id="searchInput" placeholder="Buscar usuário" value="${escapeAttr(filtroBusca)}">
+          <select id="statusSelect">
+            <option value="" ${filtroStatus === "" ? "selected" : ""}>Todos</option>
+            <option value="ativo" ${filtroStatus === "ativo" ? "selected" : ""}>Ativo</option>
+            <option value="teste" ${filtroStatus === "teste" ? "selected" : ""}>Teste</option>
+            <option value="vencido" ${filtroStatus === "vencido" ? "selected" : ""}>Vencido</option>
+            <option value="pago" ${filtroStatus === "pago" ? "selected" : ""}>Pago</option>
+          </select>
         </div>
-      `;
+      </div>
 
-      document.getElementById("searchInput").addEventListener("input", e => {
-        filtroBusca = e.target.value;
-        renderClientes();
-      });
+      <div class="table-wrap">
+        <table>
+          <colgroup>
+            <col class="col-user">
+            <col class="col-venc">
+            <col class="col-status">
+            <col class="col-obs">
+            <col class="col-acoes">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Usuário</th>
+              <th>Vencimento</th>
+              <th>Status</th>
+              <th>Observação</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${
+              lista.length
+                ? lista.map(c => {
+                  const safeId = JSON.stringify(c.id);
+                  const inputId = "fone_" + cssSafeId(c.id);
+                  const obsId = "obs_" + cssSafeId(c.id);
+                  const obsSalva = observacoes[c.id] || "";
 
-      document.getElementById("statusSelect").addEventListener("change", e => {
-        filtroStatus = e.target.value;
-        renderClientes();
-      });
-    }
+                  return `
+                    <tr>
+                      <td>${escapeHtml(c.login)}</td>
+                      <td>${escapeHtml(c.vencimento || "-")}</td>
+                      <td><span class="${statusClass(c)}">${statusLabel(c)}</span></td>
+                      <td>
+                        <div class="obs-box">
+                          <span class="obs-label">Observação</span>
+                          ${
+                            obsSalva
+                              ? `
+                                <div class="row">
+                                  <div class="saved-phone">${escapeHtml(obsSalva)}</div>
+                                  <button class="mini-btn mini-gray" onclick="document.getElementById('${obsId}_box').style.display='flex';document.getElementById('${obsId}_saved').style.display='none';">Editar</button>
+                                </div>
+                                <div id="${obsId}_saved"></div>
+                                <div id="${obsId}_box" class="row" style="display:none;margin-top:8px">
+                                  <input id="${obsId}" value="${escapeAttr(obsSalva)}" placeholder="Digite uma observação">
+                                  <button class="mini-btn mini-green" onclick='salvarObservacao(${safeId})'>Salvar</button>
+                                </div>
+                              `
+                              : `
+                                <div class="row">
+                                  <input id="${obsId}" value="" placeholder="Digite uma observação">
+                                  <button class="mini-btn mini-green" onclick='salvarObservacao(${safeId})'>Salvar</button>
+                                </div>
+                              `
+                          }
+                        </div>
+                      </td>
+                      <td>
+                        <div class="table-actions">
+                          <div class="contact-box">
+                            <span class="contact-label">WhatsApp do cliente</span>
+                            ${
+                              contatos[c.id] && !editandoContato[c.id]
+                                ? `
+                                  <div class="row">
+                                    <div class="saved-phone">${escapeHtml(contatos[c.id])}</div>
+                                    <button class="mini-btn mini-gray" onclick='abrirEdicaoContato(${safeId})'>Editar</button>
+                                    <button class="mini-btn mini-red" onclick='removerContato(${safeId})'>Excluir</button>
+                                  </div>
+                                `
+                                : `
+                                  <div class="row">
+                                    <input id="${inputId}" placeholder="Ex: 62999999999" value="${escapeAttr(contatos[c.id] || "")}">
+                                    <button class="mini-btn mini-green" onclick='salvarContato(${safeId})'>Salvar</button>
+                                    ${
+                                      contatos[c.id]
+                                        ? `<button class="mini-btn mini-outline" onclick='cancelarEdicaoContato(${safeId})'>Cancelar</button>`
+                                        : ""
+                                    }
+                                  </div>
+                                `
+                            }
+                          </div>
+
+                          <div class="row">
+                            <a
+                              class="mini-btn mini-outline"
+                              target="_blank"
+                              href="${contatos[c.id] ? buildClientWhatsappLink(c, `Olá, tudo bem? Sua assinatura MS TV (${c.login}) vence em ${c.vencimento}. Caso queira, posso te enviar o PIX para renovação.`) : '#'}"
+                              onclick="${contatos[c.id] ? "" : "alert('Cadastre o WhatsApp do cliente primeiro.'); return false;"}"
+                            >
+                              WhatsApp
+                            </a>
+
+                            <button class="mini-btn mini-outline" onclick='marcarRenovado(${safeId})'>Renovado</button>
+
+                            ${
+                              isPago(c.id)
+                                ? `<button class="mini-btn mini-green" onclick='desmarcarPago(${safeId})'>Pago</button>`
+                                : `<button class="mini-btn mini-blue" onclick='marcarPago(${safeId})'>Pago</button>`
+                            }
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join("")
+                : `<tr><td colspan="5" class="empty">Nenhum cliente encontrado.</td></tr>`
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("searchInput").addEventListener("input", e => {
+    filtroBusca = e.target.value;
+    renderClientes();
+  });
+
+  document.getElementById("statusSelect").addEventListener("change", e => {
+    filtroStatus = e.target.value;
+    renderClientes();
+  });
+}
 
     function renderCobrancas() {
       const blocos = [
