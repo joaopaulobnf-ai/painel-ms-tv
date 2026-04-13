@@ -30,7 +30,6 @@ function normalizeLoginKey(login = "") {
 function parseDateBR(dateStr) {
   const clean = String(dateStr || "").trim();
   const match = clean.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-
   if (!match) return null;
 
   const [, dd, mm, yyyy] = match;
@@ -50,7 +49,6 @@ function isPastDate(dateStr) {
 function formatDateBRFromSlash(raw) {
   const clean = String(raw || "").trim();
   const match = clean.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-
   if (!match) return "";
 
   const [, dd, mm, yyyy] = match;
@@ -188,7 +186,7 @@ function parseListaManual(texto) {
       vencimento: parsed.vencimento,
       status: parsed.status,
       teste: parsed.teste,
-      observacao: store.observacoes[parsed.loginKey] || ""
+      observacao: ""
     });
   }
 
@@ -227,10 +225,50 @@ function getMesReferencia(clientes) {
   };
 }
 
+function getLegacyKeysForCliente(cliente) {
+  const keys = new Set();
+
+  if (cliente?.id) keys.add(String(cliente.id));
+  if (cliente?.loginKey) keys.add(String(cliente.loginKey));
+  if (cliente?.login) keys.add(normalizeLoginKey(cliente.login));
+
+  return [...keys];
+}
+
+function getStoredValue(obj, cliente) {
+  const keys = getLegacyKeysForCliente(cliente);
+
+  for (const key of keys) {
+    if (obj && Object.prototype.hasOwnProperty.call(obj, key)) {
+      return obj[key];
+    }
+  }
+
+  return undefined;
+}
+
+function setStoredValue(obj, cliente, value) {
+  if (!obj || !cliente) return;
+
+  const keys = getLegacyKeysForCliente(cliente);
+  for (const key of keys) {
+    obj[key] = value;
+  }
+}
+
+function deleteStoredValue(obj, cliente) {
+  if (!obj || !cliente) return;
+
+  const keys = getLegacyKeysForCliente(cliente);
+  for (const key of keys) {
+    delete obj[key];
+  }
+}
+
 function contatosByCurrentIds() {
   const result = {};
   for (const cliente of store.clientes) {
-    const telefone = store.contatos[cliente.loginKey];
+    const telefone = getStoredValue(store.contatos, cliente);
     if (telefone) result[cliente.id] = telefone;
   }
   return result;
@@ -239,10 +277,27 @@ function contatosByCurrentIds() {
 function observacoesByCurrentIds() {
   const result = {};
   for (const cliente of store.clientes) {
-    const obs = store.observacoes[cliente.loginKey] || "";
+    const obs = getStoredValue(store.observacoes, cliente) || "";
     result[cliente.id] = obs;
   }
   return result;
+}
+
+function listIncludesCliente(list, cliente) {
+  const keys = getLegacyKeysForCliente(cliente);
+  return keys.some(key => Array.isArray(list) && list.includes(key));
+}
+
+function normalizeListByCurrentClientes(list) {
+  const normalized = [];
+
+  for (const cliente of store.clientes) {
+    if (listIncludesCliente(list, cliente)) {
+      normalized.push(cliente.id);
+    }
+  }
+
+  return [...new Set(normalized)];
 }
 
 function atualizarResumoMensalAtual() {
@@ -257,19 +312,26 @@ function atualizarResumoMensalAtual() {
     resumo: montarResumoMensal(store.clientes, store.pagos, store.renovados),
     clientes: store.clientes.map(cliente => ({
       ...cliente,
-      telefone: store.contatos[cliente.loginKey] || "",
-      observacao: store.observacoes[cliente.loginKey] || "",
-      pago: store.pagos.includes(cliente.id),
-      renovado: store.renovados.includes(cliente.id)
+      telefone: getStoredValue(store.contatos, cliente) || "",
+      observacao: getStoredValue(store.observacoes, cliente) || "",
+      pago: listIncludesCliente(store.pagos, cliente),
+      renovado: listIncludesCliente(store.renovados, cliente)
     }))
   };
 }
 
 router.get("/", (req, res) => {
+  store.pagos = normalizeListByCurrentClientes(store.pagos || []);
+  store.renovados = normalizeListByCurrentClientes(store.renovados || []);
+  saveStore();
+
   res.json({
     result: true,
     total: store.clientes.length,
-    clients: store.clientes
+    clients: store.clientes.map(cliente => ({
+      ...cliente,
+      observacao: getStoredValue(store.observacoes, cliente) || ""
+    }))
   });
 });
 
@@ -293,13 +355,39 @@ router.post("/importar-lista", (req, res) => {
       });
     }
 
-    const mesRef = getMesReferencia(novosClientes);
+    const contatosBackup = { ...(store.contatos || {}) };
+    const observacoesBackup = { ...(store.observacoes || {}) };
+    const pagosBackup = [...(store.pagos || [])];
+    const renovadosBackup = [...(store.renovados || [])];
 
-    store.clientes = novosClientes;
+    store.clientes = novosClientes.map(cliente => ({
+      ...cliente,
+      observacao: getStoredValue(observacoesBackup, cliente) || ""
+    }));
+
     store.pagos = [];
     store.renovados = [];
 
-    const resumo = montarResumoMensal(novosClientes, store.pagos, store.renovados);
+    for (const cliente of store.clientes) {
+      if (listIncludesCliente(pagosBackup, cliente)) {
+        store.pagos.push(cliente.id);
+      }
+      if (listIncludesCliente(renovadosBackup, cliente)) {
+        store.renovados.push(cliente.id);
+      }
+
+      const telefone = getStoredValue(contatosBackup, cliente);
+      if (telefone) setStoredValue(store.contatos, cliente, telefone);
+
+      const obs = getStoredValue(observacoesBackup, cliente);
+      if (obs) setStoredValue(store.observacoes, cliente, obs);
+    }
+
+    store.pagos = [...new Set(store.pagos)];
+    store.renovados = [...new Set(store.renovados)];
+
+    const mesRef = getMesReferencia(store.clientes);
+    const resumo = montarResumoMensal(store.clientes, store.pagos, store.renovados);
 
     const historicoMes = {
       id: String(Date.now()),
@@ -307,12 +395,12 @@ router.post("/importar-lista", (req, res) => {
       label: mesRef.label,
       dataImportacao: new Date().toISOString(),
       resumo,
-      clientes: novosClientes.map(cliente => ({
+      clientes: store.clientes.map(cliente => ({
         ...cliente,
-        telefone: store.contatos[cliente.loginKey] || "",
-        observacao: store.observacoes[cliente.loginKey] || "",
-        pago: false,
-        renovado: false
+        telefone: getStoredValue(store.contatos, cliente) || "",
+        observacao: getStoredValue(store.observacoes, cliente) || "",
+        pago: listIncludesCliente(store.pagos, cliente),
+        renovado: listIncludesCliente(store.renovados, cliente)
       }))
     };
 
@@ -321,7 +409,7 @@ router.post("/importar-lista", (req, res) => {
 
     store.historico.push({
       acao: "importou_lista_manual",
-      total: novosClientes.length,
+      total: store.clientes.length,
       mes: mesRef.chave,
       data: new Date().toISOString()
     });
@@ -361,19 +449,33 @@ router.post("/limpar-lista", (req, res) => {
 });
 
 router.get("/pagos", (req, res) => {
+  store.pagos = normalizeListByCurrentClientes(store.pagos || []);
+  saveStore();
   res.json(store.pagos || []);
 });
 
 router.get("/renovados", (req, res) => {
+  store.renovados = normalizeListByCurrentClientes(store.renovados || []);
+  saveStore();
   res.json(store.renovados || []);
 });
 
 router.post("/pagar/:id", (req, res) => {
   try {
     const id = decodeURIComponent(req.params.id);
+    const cliente = store.clientes.find(c => c.id === id);
 
-    if (!store.pagos.includes(id)) {
-      store.pagos.push(id);
+    if (!cliente) {
+      return res.status(404).json({
+        ok: false,
+        message: "Cliente não encontrado."
+      });
+    }
+
+    if (!listIncludesCliente(store.pagos, cliente)) {
+      store.pagos.push(cliente.id);
+    } else {
+      store.pagos = normalizeListByCurrentClientes(store.pagos || []);
     }
 
     store.historico.push({
@@ -402,8 +504,17 @@ router.post("/pagar/:id", (req, res) => {
 router.post("/desmarcar-pago/:id", (req, res) => {
   try {
     const id = decodeURIComponent(req.params.id);
+    const cliente = store.clientes.find(c => c.id === id);
 
-    store.pagos = store.pagos.filter(item => item !== id);
+    if (!cliente) {
+      return res.status(404).json({
+        ok: false,
+        message: "Cliente não encontrado."
+      });
+    }
+
+    const keys = getLegacyKeysForCliente(cliente);
+    store.pagos = (store.pagos || []).filter(item => !keys.includes(item));
 
     store.historico.push({
       id,
@@ -431,9 +542,19 @@ router.post("/desmarcar-pago/:id", (req, res) => {
 router.post("/renovado/:id", (req, res) => {
   try {
     const id = decodeURIComponent(req.params.id);
+    const cliente = store.clientes.find(c => c.id === id);
 
-    if (!store.renovados.includes(id)) {
-      store.renovados.push(id);
+    if (!cliente) {
+      return res.status(404).json({
+        ok: false,
+        message: "Cliente não encontrado."
+      });
+    }
+
+    if (!listIncludesCliente(store.renovados, cliente)) {
+      store.renovados.push(cliente.id);
+    } else {
+      store.renovados = normalizeListByCurrentClientes(store.renovados || []);
     }
 
     store.historico.push({
@@ -458,11 +579,21 @@ router.post("/renovado/:id", (req, res) => {
     });
   }
 });
+
 router.post("/desmarcar-renovado/:id", (req, res) => {
   try {
     const id = decodeURIComponent(req.params.id);
+    const cliente = store.clientes.find(c => c.id === id);
 
-    store.renovados = store.renovados.filter(item => item !== id);
+    if (!cliente) {
+      return res.status(404).json({
+        ok: false,
+        message: "Cliente não encontrado."
+      });
+    }
+
+    const keys = getLegacyKeysForCliente(cliente);
+    store.renovados = (store.renovados || []).filter(item => !keys.includes(item));
 
     store.historico.push({
       id,
@@ -486,6 +617,7 @@ router.post("/desmarcar-renovado/:id", (req, res) => {
     });
   }
 });
+
 router.get("/contatos", (req, res) => {
   res.json(contatosByCurrentIds());
 });
@@ -519,7 +651,7 @@ router.post("/contatos/:id", (req, res) => {
       });
     }
 
-    store.contatos[cliente.loginKey] = numeroLimpo;
+    setStoredValue(store.contatos, cliente, numeroLimpo);
     atualizarResumoMensalAtual();
     saveStore();
 
@@ -549,7 +681,7 @@ router.delete("/contatos/:id", (req, res) => {
       });
     }
 
-    delete store.contatos[cliente.loginKey];
+    deleteStoredValue(store.contatos, cliente);
     atualizarResumoMensalAtual();
     saveStore();
 
@@ -583,11 +715,11 @@ router.post("/observacoes/:id", (req, res) => {
       });
     }
 
-    store.observacoes[cliente.loginKey] = String(observacao || "").trim();
+    setStoredValue(store.observacoes, cliente, String(observacao || "").trim());
 
     const clienteAtual = store.clientes.find(c => c.id === id);
     if (clienteAtual) {
-      clienteAtual.observacao = store.observacoes[cliente.loginKey];
+      clienteAtual.observacao = getStoredValue(store.observacoes, cliente) || "";
     }
 
     atualizarResumoMensalAtual();
@@ -595,7 +727,7 @@ router.post("/observacoes/:id", (req, res) => {
 
     res.json({
       ok: true,
-      observacao: store.observacoes[cliente.loginKey]
+      observacao: getStoredValue(store.observacoes, cliente) || ""
     });
   } catch (error) {
     console.error("Erro em /observacoes/:id:", error);
