@@ -577,6 +577,109 @@ tbody td{
       screen = nextScreen;
       document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
       if (button) button.classList.add("active");
+      function exportarClientesCSV() {
+  const lista = clientesFiltrados();
+
+  if (!lista.length) {
+    alert("Nenhum cliente para exportar.");
+    return;
+  }
+
+  const linhas = [
+    ["Usuário", "Vencimento", "Status", "Observação", "WhatsApp", "Pago", "Renovado"]
+  ];
+
+  lista.forEach(c => {
+    linhas.push([
+      c.login || "",
+      c.vencimento || "",
+      statusLabel(c),
+      observacoes[c.id] || "",
+      contatos[c.id] || "",
+      isPago(c.id) ? "SIM" : "NÃO",
+      isRenovado(c.id) ? "SIM" : "NÃO"
+    ]);
+  });
+
+  const csv = linhas
+    .map(linha =>
+      linha.map(valor => `"${String(valor).replace(/"/g, '""')}"`).join(";")
+    )
+    .join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const hoje = new Date();
+  const nome = `clientes-ms-tv-${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}.csv`;
+
+  a.href = url;
+  a.download = nome;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function imprimirClientes() {
+  const lista = clientesFiltrados();
+
+  if (!lista.length) {
+    alert("Nenhum cliente para imprimir.");
+    return;
+  }
+
+  const html = `
+    <html>
+      <head>
+        <title>Clientes MS TV</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          h1 { margin-bottom: 20px; }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 12px; }
+          th { background: #0f172a; color: #fff; }
+        </style>
+      </head>
+      <body>
+        <h1>Clientes MS TV</h1>
+        <table>
+          <thead>
+            <tr>
+              <th>Usuário</th>
+              <th>Vencimento</th>
+              <th>Status</th>
+              <th>Observação</th>
+              <th>WhatsApp</th>
+              <th>Pago</th>
+              <th>Renovado</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${lista.map(c => `
+              <tr>
+                <td>${escapeHtml(c.login || "")}</td>
+                <td>${escapeHtml(c.vencimento || "")}</td>
+                <td>${escapeHtml(statusLabel(c))}</td>
+                <td>${escapeHtml(observacoes[c.id] || "")}</td>
+                <td>${escapeHtml(contatos[c.id] || "")}</td>
+                <td>${isPago(c.id) ? "SIM" : "NÃO"}</td>
+                <td>${isRenovado(c.id) ? "SIM" : "NÃO"}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </body>
+    </html>
+  `;
+
+  const win = window.open("", "_blank");
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  win.print();
+}
       render();
     }
 
