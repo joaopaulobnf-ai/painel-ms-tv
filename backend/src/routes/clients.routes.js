@@ -771,8 +771,6 @@ router.get("/listas-historico/:mes", (req, res) => {
     item
   });
 });
-
-export default router;
 router.post("/bulk-update", (req, res) => {
   try {
     const { linhas } = req.body;
@@ -788,41 +786,50 @@ router.post("/bulk-update", (req, res) => {
       const login = String(item.login || "").trim();
       if (!login) continue;
 
-      const key = normalizeLoginKey(login);
+      const cliente = store.clientes.find(c => {
+        const loginAtual = String(c.login || "").trim().toLowerCase();
+        return loginAtual === login.toLowerCase();
+      });
+
+      if (!cliente) continue;
+
+      const loginKey = normalizeLoginKey(cliente.login);
 
       if (item.whatsapp) {
-        store.contatos[key] = String(item.whatsapp).trim();
+        store.contatos[loginKey] = String(item.whatsapp).replace(/\D/g, "").trim();
       }
 
-      if (item.observacao !== undefined) {
-        store.observacoes[key] = String(item.observacao).trim();
+      if (item.observacao !== undefined && item.observacao !== null && String(item.observacao).trim() !== "") {
+        store.observacoes[loginKey] = String(item.observacao).trim();
       }
 
       if (item.pago) {
-        if (!store.pagos.includes(key)) {
-          store.pagos.push(key);
+        if (!store.pagos.includes(cliente.id)) {
+          store.pagos.push(cliente.id);
         }
       }
 
       if (item.renovado) {
-        if (!store.renovados.includes(key)) {
-          store.renovados.push(key);
+        if (!store.renovados.includes(cliente.id)) {
+          store.renovados.push(cliente.id);
         }
       }
     }
 
+    atualizarResumoMensalAtual();
     saveStore();
 
-    res.json({
+    return res.json({
       success: true,
-      message: "Atualização em lote concluída."
+      message: "Atualização em lote concluída com sucesso."
     });
   } catch (err) {
-    console.error(err);
+    console.error("Erro em /bulk-update:", err);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Erro ao processar lote."
     });
   }
 });
+export default router;
