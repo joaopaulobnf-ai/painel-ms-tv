@@ -174,7 +174,7 @@ function parseLinhaPlanilhaPgRenovado(line, index, existingMap) {
   const clean = String(line || "").replace(/\r/g, "").trim();
   if (!clean) return null;
 
-  const partes = clean.split(/\t+/).map(v => String(v || "").trim()).filter(v => v !== "");
+  const partes = clean.split(/\t+/).map(v => String(v || "").trim());
   if (partes.length < 2) return null;
 
   const login = sanitizeLogin(partes[0]);
@@ -192,14 +192,19 @@ function parseLinhaPlanilhaPgRenovado(line, index, existingMap) {
   let renovado = false;
   let observacao = "";
 
+  const plusMatch = acao.match(/\+\s*(\d+)/i);
+  if (plusMatch) {
+    observacao = `+${plusMatch[1]}`;
+  }
+
   if (acao.includes("pg renovado")) {
     pago = true;
     renovado = true;
-
-    const plusMatch = acao.match(/\+\s*(\d+)/i);
-    if (plusMatch) {
-      observacao = `+${plusMatch[1]}`;
-    }
+  } else if (acao === "pg" || acao.startsWith("pg +")) {
+    pago = true;
+    renovado = false;
+  } else {
+    return null;
   }
 
   const status = isPastDate(vencimento) ? "vencido" : "ativo";
