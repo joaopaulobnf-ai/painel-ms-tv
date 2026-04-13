@@ -446,9 +446,12 @@ tbody td{
       return sortClientes(clientesVisiveisClientesCobrancas()).filter(c => diffDays(c.vencimento) === days);
     }
 
-    function clientesVencidos() {
-      return sortClientes(clientesVisiveisClientesCobrancas()).filter(c => c.status === "vencido");
-    }
+   function clientesVencidos() {
+  return sortClientes(clientesVisiveisClientesCobrancas()).filter(c => {
+    const dias = diffDays(c.vencimento);
+    return dias !== null && dias < 0 && !isPago(c.id);
+  });
+}
 
     function clientesElegiveisSorteio() {
       return clientes.filter(c => isPago(c.id) || isRenovado(c.id));
