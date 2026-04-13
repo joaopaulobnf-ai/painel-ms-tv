@@ -443,8 +443,11 @@ tbody td{
     }
 
     function clientesPorDias(days) {
-      return sortClientes(clientesVisiveisClientesCobrancas()).filter(c => diffDays(c.vencimento) === days);
-    }
+  return sortClientes(clientesVisiveisClientesCobrancas()).filter(c => {
+    const dias = diffDays(c.vencimento);
+    return dias === days && !isPago(c.id);
+  });
+}
 
    function clientesVencidos() {
   return sortClientes(clientesVisiveisClientesCobrancas()).filter(c => {
