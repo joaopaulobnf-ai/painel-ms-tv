@@ -773,3 +773,56 @@ router.get("/listas-historico/:mes", (req, res) => {
 });
 
 export default router;
+router.post("/bulk-update", (req, res) => {
+  try {
+    const { linhas } = req.body;
+
+    if (!Array.isArray(linhas)) {
+      return res.status(400).json({
+        success: false,
+        message: "Formato inválido."
+      });
+    }
+
+    for (const item of linhas) {
+      const login = String(item.login || "").trim();
+      if (!login) continue;
+
+      const key = normalizeLoginKey(login);
+
+      if (item.whatsapp) {
+        store.contatos[key] = String(item.whatsapp).trim();
+      }
+
+      if (item.observacao !== undefined) {
+        store.observacoes[key] = String(item.observacao).trim();
+      }
+
+      if (item.pago) {
+        if (!store.pagos.includes(key)) {
+          store.pagos.push(key);
+        }
+      }
+
+      if (item.renovado) {
+        if (!store.renovados.includes(key)) {
+          store.renovados.push(key);
+        }
+      }
+    }
+
+    saveStore();
+
+    res.json({
+      success: true,
+      message: "Atualização em lote concluída."
+    });
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      message: "Erro ao processar lote."
+    });
+  }
+});
