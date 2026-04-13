@@ -189,41 +189,69 @@ function parseLinhaModeloNovoSemStatus(line, index) {
 }
 
 function parseLinhaPlanilhaPgRenovado(line, index, existingMap) {
-  const clean = String(line || "").replace(/\r/g, "").trim();
-  if (!clean) return null;
+  try {
+    const clean = String(line || "")
+      .replace(/\r/g, "")
+      .trim();
 
-  const partes = clean.split(/\t+/).map(v => String(v || "").trim());
-  if (partes.length < 2) return null;
+    if (!clean) return null;
 
-  const login = sanitizeLogin(partes[0]);
-  const loginKey = normalizeLoginKey(login);
-  const existente = existingMap.get(loginKey);
+    const partes = clean
+      .split(/\t+/)
+      .map(v => String(v || "").trim())
+      .filter(Boolean);
 
-  const vencimentoBruto = partes[1] || "";
-  const vencimento = formatDateBRFromSlash(vencimentoBruto);
+    if (partes.length < 2) return null;
 
-  if (!login || !vencimento) return null;
+    const login = sanitizeLogin(partes[0]);
+    const loginKey = normalizeLoginKey(login);
 
-  const acao = String(partes[2] || "").toLowerCase().trim();
+    const existente = existingMap.get(loginKey);
 
-  let pago = false;
-  let renovado = false;
-  let observacao = "";
+    const vencimento = formatDateBRFromSlash(partes[1]);
 
-  const plusMatch = acao.match(/\+\s*(\d+)/i);
-  if (plusMatch) {
-    observacao = `+${plusMatch[1]}`;
-  }
+    if (!login || !vencimento) return null;
 
-  if (acao.includes("pg renovado")) {
-    pago = true;
-    renovado = true;
-  } else if (acao === "pg" || acao.startsWith("pg +")) {
-    pago = true;
-    renovado = false;
-  } else {
+    const acaoRaw = (partes[2] || "").toLowerCase().trim();
+
+    let pago = false;
+    let renovado = false;
+    let observacao = "";
+
+    // EXTRAI +N
+    const plusMatch = acaoRaw.match(/\+\s*(\d+)/i);
+    if (plusMatch) {
+      observacao = `+${plusMatch[1]}`;
+    }
+
+    // REGRAS
+    if (acaoRaw.includes("pg renovado")) {
+      pago = true;
+      renovado = true;
+    }
+    else if (acaoRaw.startsWith("pg")) {
+      pago = true;
+      renovado = false;
+    }
+
+    return {
+      id: existente?.id || `${loginKey}-${index}`,
+      login,
+      loginKey,
+      vencimento,
+      status: getStatusByVencimento(vencimento, false),
+      teste: false,
+      pago,
+      renovado,
+      observacao
+    };
+
+  } catch (err) {
+    console.error("ERRO AO PROCESSAR LINHA:", line);
+    console.error(err);
     return null;
   }
+}
 
   const status = getStatusByVencimento(vencimento, false);
 
