@@ -432,16 +432,27 @@ tbody td{
       return clientes.filter(c => !isRenovado(c.id));
     }
 
-    function statusLabel(cliente) {
-      if (isPago(cliente.id) && isRenovado(cliente.id)) return "Pago/Renovado";
-      if (isPago(cliente.id)) return "Pago";
-      if (isRenovado(cliente.id)) return "Renovado";
-      if (cliente.status === "ativo") return "Ativo";
-      if (cliente.status === "teste") return "Teste";
-      if (cliente.status === "vencido") return "Vencido";
-      return "Inativo";
-    }
+    function statusReal(cliente) {
+  if (cliente.teste) return "teste";
 
+  const dias = diffDays(cliente.vencimento);
+  if (dias === null) return cliente.status || "ativo";
+
+  return dias < 0 ? "vencido" : "ativo";
+}
+
+function statusLabel(cliente) {
+  if (isPago(cliente.id) && isRenovado(cliente.id)) return "Pago/Renovado";
+  if (isPago(cliente.id)) return "Pago";
+  if (isRenovado(cliente.id)) return "Renovado";
+
+  const realStatus = statusReal(cliente);
+
+  if (realStatus === "ativo") return "Ativo";
+  if (realStatus === "teste") return "Teste";
+  if (realStatus === "vencido") return "Vencido";
+  return "Inativo";
+}
     function statusClass(cliente) {
       if (isPago(cliente.id)) return "badge badge-pago";
       if (isRenovado(cliente.id)) return "badge badge-renovado";
