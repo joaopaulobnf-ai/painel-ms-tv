@@ -724,23 +724,31 @@
   }
 }
     async function confirmarRenovado(id) {
-      try {
-        await fetchJson(API + "/api/clients/renovado/" + encodeURIComponent(id), {
-          method: "POST"
-        });
+  try {
+    const confirmBtn = document.getElementById("confirmRenovadoBtn");
 
-        if (!renovados.includes(id)) {
-          renovados.push(id);
-        }
-
-        closeRenovadoModal();
-        render();
-      } catch (error) {
-        console.error(error);
-        closeRenovadoModal();
-        alert("Erro ao marcar como renovado.");
-      }
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = "Processando...";
+      confirmBtn.style.opacity = "0.7";
+      confirmBtn.style.cursor = "wait";
     }
+
+    await fetchJson(API + "/api/clients/renovado/" + encodeURIComponent(id), {
+      method: "POST"
+    });
+
+    if (!renovados.includes(id)) {
+      renovados.push(id);
+    }
+
+    closeRenovadoModal();
+    render();
+  } catch (error) {
+    console.error(error);
+    alert("Erro ao marcar como renovado.");
+  }
+}
     async function marcarRenovado(id) {
       const cliente = clientes.find(c => c.id === id);
       const nomeCliente = cliente ? cliente.login : "este cliente";
