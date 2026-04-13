@@ -1736,3 +1736,23 @@ Equipe MS TV`;
   </script>
 </body>
 </html>
+<button class="menu-btn" onclick="showSection('bulkSection')">
+    📥 Importação em lote
+</button>
+<section id="bulkSection" class="section" style="display:none;">
+    <div class="card">
+        <h2>Importação em lote</h2>
+        <p>Formato: LOGIN;WHATSAPP;OBSERVAÇÃO;PAGO;RENOVADO</p>
+
+        <textarea
+            id="bulkInput"
+            rows="15"
+            style="width:100%;margin-top:15px;"
+            placeholder="juniorjd779;62993828280;+2;PAGO;RENOVADO"
+        ></textarea>
+
+        <button class="btn btn-primary" onclick="processBulkImport()">
+            Processar lote
+        </button>
+    </div>
+</section>
