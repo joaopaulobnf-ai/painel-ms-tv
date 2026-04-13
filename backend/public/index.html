@@ -770,6 +770,80 @@ function closeDesmarcarRenovadoModal() {
       const nomeCliente = cliente ? cliente.login : "este cliente";
       openRenovadoModal(id, nomeCliente);
     }
+    function openDesmarcarRenovadoModal(clienteId, nomeCliente) {
+  closeDesmarcarRenovadoModal();
+
+  const overlay = document.createElement("div");
+  overlay.id = "desmarcarRenovadoModalOverlay";
+  overlay.className = "modal-overlay";
+
+  overlay.innerHTML = `
+    <div class="modal-card">
+      <div class="modal-head">
+        <div class="modal-avatar">
+          <img src="/avatar-ms-tv.png" alt="MS TV">
+        </div>
+
+        <div>
+          <h3>Desmarcar renovação</h3>
+          <p>Padrão premium MS TV</p>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        Deseja desmarcar <strong>${escapeHtml(nomeCliente)}</strong> como
+        <span class="modal-highlight">RENOVADO</span>?
+
+        <div class="modal-list">
+          <div class="modal-item">
+            <span>👥</span>
+            <div>O cliente voltará a aparecer na tela de <strong>Clientes</strong>.</div>
+          </div>
+
+          <div class="modal-item">
+            <span>💬</span>
+            <div>O cliente voltará a aparecer também na tela de <strong>Cobranças</strong>.</div>
+          </div>
+
+          <div class="modal-item">
+            <span>🔄</span>
+            <div>O <strong>Dashboard</strong>, <strong>Financeiro</strong>, <strong>Sorteio</strong> e o <strong>Resumo Mensal</strong> serão atualizados.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="cancelDesmarcarRenovadoBtn" class="btn btn-light">
+          Cancelar
+        </button>
+        <button id="confirmDesmarcarRenovadoBtn" class="btn btn-orange">
+          Confirmar desmarcação
+        </button>
+      </div>
+    </div>
+  `;
+
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) {
+      closeDesmarcarRenovadoModal();
+    }
+  });
+
+  document.body.appendChild(overlay);
+
+  const cancelBtn = document.getElementById("cancelDesmarcarRenovadoBtn");
+  const confirmBtn = document.getElementById("confirmDesmarcarRenovadoBtn");
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", closeDesmarcarRenovadoModal);
+  }
+
+  if (confirmBtn) {
+    confirmBtn.addEventListener("click", () => {
+      confirmarDesmarcarRenovado(clienteId);
+    });
+  }
+}
 async function desmarcarRenovado(id) {
   const cliente = clientes.find(c => c.id === id);
   const nomeCliente = cliente ? cliente.login : "este cliente";
