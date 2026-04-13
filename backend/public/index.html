@@ -877,32 +877,7 @@ function closeDesmarcarRenovadoModal() {
 async function desmarcarRenovado(id) {
   const cliente = clientes.find(c => c.id === id);
   const nomeCliente = cliente ? cliente.login : "este cliente";
-
-  const confirmar = confirm(
-    `Deseja desmarcar ${nomeCliente} como renovado?\n\n` +
-    `Ele voltará a aparecer nas telas de Clientes e Cobranças.`
-  );
-
-  if (!confirmar) return;
-
-  try {
-    await fetchJson(API + "/api/clients/desmarcar-renovado/" + encodeURIComponent(id), {
-      method: "POST"
-    });
-
-    renovados = renovados.filter(item => item !== id);
-
-    await carregar();
-
-    if (screen === "listas") {
-      renderListasHistorico();
-    } else {
-      render();
-    }
-  } catch (error) {
-    console.error(error);
-    alert("Erro ao desmarcar renovado.");
-  }
+  openDesmarcarRenovadoModal(id, nomeCliente);
 }
     function abrirEdicaoContato(id) {
       editandoContato[id] = true;
