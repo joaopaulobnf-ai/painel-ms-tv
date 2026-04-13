@@ -649,7 +649,7 @@
       if (modal) modal.remove();
     }
 
-        function openRenovadoModal(clienteId, nomeCliente) {
+            function openRenovadoModal(clienteId, nomeCliente) {
       closeRenovadoModal();
 
       const overlay = document.createElement("div");
@@ -659,7 +659,10 @@
       overlay.innerHTML = `
         <div class="modal-card">
           <div class="modal-head">
-            <div class="modal-icon">✨</div>
+            <div class="modal-avatar">
+              <img src="/avatar-ms-tv.png" alt="MS TV">
+            </div>
+
             <div>
               <h3>Confirmar renovação</h3>
               <p>Padrão premium MS TV</p>
@@ -705,7 +708,6 @@
 
       document.body.appendChild(overlay);
     }
-
     async function confirmarRenovado(id) {
       try {
         await fetchJson(API + "/api/clients/renovado/" + encodeURIComponent(id), {
