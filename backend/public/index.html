@@ -529,6 +529,7 @@ tbody td{
               <input id="loginPass" type="password" placeholder="Senha" autocomplete="current-password">
               <div style="height:12px"></div>
               <button class="btn btn-dark" type="submit" style="width:100%">Entrar no painel</button>
+              <button class="nav-btn ${screen === "bulk" ? "active" : ""}" onclick="changeScreen('bulk', this)">📥 Importação em lote</button>
             </form>
             <div id="loginError" class="login-error"></div>
           </div>
