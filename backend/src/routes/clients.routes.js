@@ -225,7 +225,7 @@ function parseLinhaPlanilhaPgRenovado(line, index, existingMap) {
     return null;
   }
 
-  const status = isPastDate(vencimento) ? "vencido" : "ativo";
+  const status = getStatusByVencimento(vencimento, false);
 
   return {
     id: existente?.id || `${loginKey}-${index}`,
