@@ -661,7 +661,10 @@ tbody td{
       const modal = document.getElementById("renovadoModalOverlay");
       if (modal) modal.remove();
     }
-
+function closeDesmarcarRenovadoModal() {
+  const modal = document.getElementById("desmarcarRenovadoModalOverlay");
+  if (modal) modal.remove();
+}
             function openRenovadoModal(clienteId, nomeCliente) {
   closeRenovadoModal();
 
